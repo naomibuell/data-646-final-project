@@ -1,2 +1,4 @@
-# data-646-final-project
-Shared repo for data 624, Complex
+# Final Project Repo
+## DATA 646 - Current Topics in Urban Sustainability: Complex Systems
+
+
