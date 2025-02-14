@@ -1,0 +1,23 @@
+---
+title: "test"
+author: "Naomi Buell and Richie Rivera"
+format: html
+editor: visual
+---
+
+## Intro
+
+```{r}
+#| label: load packages
+
+library(tidyverse)
+library(janitor)
+library(httr) 
+library(jsonlite)
+```
+
+```{r}
+#| load CDC places API
+
+api_endpoint <- "https://data.cdc.gov/resource/cwsq-ngmh.json"
+```
