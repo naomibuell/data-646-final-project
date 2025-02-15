@@ -11,13 +11,30 @@ editor: visual
 #| label: load packages
 
 library(tidyverse)
-library(janitor)
+library(janitor) 
 library(httr) 
-library(jsonlite)
+library(jsonlite) 
 ```
 
 ```{r}
-#| load CDC places API
+#| load: CDC places API
 
-api_endpoint <- "https://data.cdc.gov/resource/cwsq-ngmh.json"
+base_url <- "https://data.cdc.gov/resource/cwsq-ngmh.json"
+
+# Define the query parameters
+query_params <- list(
+    "$where" = "statedesc='New York'") 
+
+# Make a GET request to the API endpoint with query parameters
+response <- GET(base_url, query = query_params)
+
+# Check if the request was successful
+if (status_code(response) == 200) {
+  # Parse the JSON response
+  data <- fromJSON(content(response, "text"))
+  data |> head()
+  
+} else {
+  cat("Failed to retrieve data. HTTP Status code:", status_code(response), "\n")
+}
 ```
