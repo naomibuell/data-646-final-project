@@ -16,6 +16,8 @@ library(httr)
 library(jsonlite) 
 ```
 
+Load data by New York state census tract
+
 ```{r}
 #| load: CDC places API
 
@@ -23,7 +25,8 @@ base_url <- "https://data.cdc.gov/resource/cwsq-ngmh.json"
 
 # Define the query parameters
 query_params <- list(
-    "$where" = "statedesc='New York'") 
+    "$where" = "statedesc='New York'",
+    "$year" = "2024") 
 
 # Make a GET request to the API endpoint with query parameters
 response <- GET(base_url, query = query_params)
