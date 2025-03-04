@@ -15,7 +15,6 @@ pacman::p_load(tidyverse, janitor, httr, jsonlite, skimr, RSocrata, CDCPLACES)
 
 Load [PLACES: Local Data for Better Health, County Data 2024 release](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-County-Data-20/swc5-untb/about_data) for New York state by census tract.
 
-
 ```{r}
 
 # API endpoint from link above
@@ -50,3 +49,14 @@ clean_data <- data |> clean_names()
 clean_data |> skim()
 
 ```
+
+```{r}
+#| label: data exploration
+
+transit <- readRDS("transit-stops-by-census-tract.rda") #NB to read this in properly
+
+```
+
+## Investigate: Does access to public transportation (measured by number of available stops per census tract) have impact on feeling socially isolated?
+
+## Hypothesis test
