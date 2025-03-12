@@ -3,6 +3,7 @@ title: "Does public transportation decrease loneliness and social isolation?"
 author: "Naomi Buell and Richie Rivera"
 format: html
 bibliography: references.bib
+freeze: true
 ---
 
 ## Intro
@@ -41,7 +42,7 @@ Browse the CDC data.
 ```{r}
 #| label: summ-CDC-data
 cdc_places |> summary()
-cdc_places |> skim()
+# cdc_places |> skim()
 cdc_places |> head()
 ```
 
@@ -52,12 +53,12 @@ cdc_places |> head()
 ## Install the required package with:
 ## install.packages("RSocrata")
 
-#df <- read.socrata(
+# df <- read.socrata(
 #    "https://data.cdc.gov/resource/cwsq-ngmh.json",
 #    app_token = "Oor3v3DJAEoCdk17eeRa8uhFK",
 #    email = "naomi.buell13@spsmail.cuny.edu",
 #    password = "H@FT5%yuKwX7fw!R" # Replace with actual password
-#)
+# )
 ```
 
 Get [Public Transit Stops by Census Tract and ZIP Code Tabulation Area, United States, 2024](https://www.icpsr.umich.edu/web/ICPSR/studies/38605/datadocumentation#) from the National Neighborhood Data Archive (NaNDA) [@pan2023].
@@ -75,7 +76,7 @@ Browse data.
 #| label: browse-transit-data
 #|
 transit |> head()
-transit |> skim()
+# transit |> skim()
 transit |> summary()
 
 ```
@@ -93,7 +94,7 @@ Browse merged data.
 #| label: browse-merged-data
 #|
 data |> head()
-data |> skim()
+# data |> skim()
 data |> summary()
 ```
 
