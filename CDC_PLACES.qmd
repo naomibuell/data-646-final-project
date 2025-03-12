@@ -10,6 +10,7 @@ freeze: true
 
 ```{r}
 #| label: load packages
+#| echo: false
 
 pacman::p_load(
     tidyverse,
@@ -77,25 +78,26 @@ Browse data.
 #|
 transit |> head()
 # transit |> skim()
-transit |> summary()
+# transit |> summary()
 
 ```
 
 Merge data.
 
 ```{r}
-data <- transit |>
-    full_join(cdc_places, by = c("tract_fips20" = "locationid"))
+data <- cdc_places |>
+              rename(tract_fips20 = locationid) |>
+  full_join(transit, by = tract_fips20)
 ```
 
 Browse merged data.
 
 ```{r}
 #| label: browse-merged-data
-#|
+
 data |> head()
-# data |> skim()
-data |> summary()
+#data |> skim()
+#data |> summary()
 ```
 
 ## Investigate: Does access to public transportation (measured by number of available stops per census tract) have impact on feeling socially isolated?
@@ -115,3 +117,15 @@ Lack of reliable transportation in the past 12 months among adults
 Lack of social and emotional support among adults
 
 :   Positive relationships and interactions with family, friends, co-workers, and community members can have a protective impact on individual health and well-being, and these relationships can also help mitigate the negative impacts of challenges that people face (e.g., living in an unsafe neighborhood, trouble affording housing or food). Past research shows that people with high levels of social isolation (lack of interactions with others or the wider community) are at higher risk of developing chronic conditions (e.g., depression, cardiovascular disease, hypertension) and have a higher risk of mortality.
+
+count_ntm_stops
+
+:   Count of transit stops reported to National Transit Map as of 1/2023
+
+stops_per_capita
+
+:   Transit stops per 1000 people
+
+stops_per_sqmile
+
+:   Transit stops per square mile
