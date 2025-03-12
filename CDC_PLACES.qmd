@@ -1,8 +1,7 @@
 ---
-title: "test"
+title: "Does public transportation decrease loneliness and social isolation?"
 author: "Naomi Buell and Richie Rivera"
 format: html
-editor: visual
 ---
 
 ## Intro
@@ -13,15 +12,54 @@ editor: visual
 pacman::p_load(tidyverse, janitor, httr, jsonlite, skimr, RSocrata, CDCPLACES)
 ```
 
-Load [PLACES: Local Data for Better Health, County Data 2024 release](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-County-Data-20/swc5-untb/about_data) for New York state by census tract.
+Load [PLACES: Local Data for Better Health, Census Tract Data 2024 release](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Census-Tract-D/cwsq-ngmh/about_data). This is 2022 data.
+
+Feelings of social isolation among adults
+
+:   Variable summary: Loneliness is defined as the discrepancy between a person’s desired and actual social relationships and is sometimes considered synonymous with social isolation, although they are two distinct concepts. Loneliness is an emotional response to social isolation, while social isolation is an objective measure of the lack of social interactions and relationships. Previous studies show that social isolation and loneliness are common sources of chronic stress in adults, and are common at the end of life, affecting 1 in 4 older adults. Positive relationships and interactions with family, friends, co-workers, and community members can have a protective impact on individual health and well-being, and these relationships can also help mitigate the negative impacts of challenges that people face (e.g., living in an unsafe neighborhood, trouble affording housing or food). Past research shows that people with high levels of social isolation are at higher risk of developing chronic conditions (e.g., depression, cardiovascular disease, hypertension, cancer) and have a higher risk of mortality.
+
+Lack of reliable transportation in the past 12 months among adults
+
+:   Nearly 2% of the U.S. population delayed medical care because they did not have transportation in 2017. Lack of available, convenient, or reliable transportation can affect a person’s ability to consistently access health care services, which can lead to delays in healthcare and medication use that can subsequently impact overall health. In addition, the inability to access reliable transportation to work, schools, and grocery stores is associated with higher rates of unemployment, poverty, and chronic illness. People with lower incomes and uninsured people are more likely to experience transportation barriers. Limited public transportation infrastructure in a neighborhood leaves people without access to vehicles lacking in reliable transportation options. Offering free or reimbursed public transit or taxi costs, connecting individuals to transportation, and policies that improve the safety and accessibility of sidewalks and bike lanes can help improve transportation access.
+
+Lack of social and emotional support among adults
+
+:   Positive relationships and interactions with family, friends, co-workers, and community members can have a protective impact on individual health and well-being, and these relationships can also help mitigate the negative impacts of challenges that people face (e.g., living in an unsafe neighborhood, trouble affording housing or food). Past research shows that people with high levels of social isolation (lack of interactions with others or the wider community) are at higher risk of developing chronic conditions (e.g., depression, cardiovascular disease, hypertension) and have a higher risk of mortality.
 
 ```{r}
+#| label: get-data-with-R-Socrata
 
-# API endpoint from link above
-base_url <- "https://data.cdc.gov/resource/swc5-untb.json?measure=Feeling%20socially%20isolated%20among%20adults"
+## Install the required package with:
+## install.packages("RSocrata")
 
-# Define the query parameters
-query_params <- list()
+df <- read.socrata(
+  "https://data.cdc.gov/resource/cwsq-ngmh.json",
+  app_token = "YOURAPPTOKENHERE",
+  email     = "user@example.com",
+  password  = "fakepassword"
+)
+
+```
+
+```{r}
+#| label: get-CDC-data
+
+# API endpoint for latest census tract CDC PLACES data
+api_endpoint <- "https://data.cdc.gov/resource/cwsq-ngmh.json"
+
+"https://data.cdc.gov/resource/cwsq-ngmh.json?measure=Feeling%20socially%20isolated%20among%20adults"
+
+# Create query for social isolation measure
+base_url <- paste0(
+    api_endpoint,
+    "?measure=",
+    "Feeling socially isolated among adults aged %3E=18 years"
+)
+
+# Define the query parameters to get age-adjusted prevalence
+query_params <- list(
+    "data_value_type" = "Age-adjusted prevalence"
+)
 
 # Make a GET request to the API endpoint with query parameters
 response <- GET(base_url, query = query_params)
@@ -39,6 +77,35 @@ if (status_code(response) == 200) {
 }
 ```
 
+```{r}
+
+# Properly encode the measure parameter for the query
+measure_query <- URLencode("Feeling socially isolated among adults", reserved = TRUE)
+data_value_type_query <- URLencode("Age-adjusted prevalence", reserved = TRUE)
+
+# Construct the full URL with query parameters
+full_url <- paste0(
+    api_endpoint,
+    "?measure=", measure_query,
+    "%20AND%20data_value_type=", data_value_type_query)
+
+# Make a GET request to the API endpoint
+response <- GET(full_url)
+
+# Check if the request was successful
+if (status_code(response) == 200) {
+    # Parse the JSON response
+    data <- fromJSON(content(response, "text"))
+} else {
+    cat(
+        "Failed to retrieve data. HTTP Status code:",
+        status_code(response),
+        "\n"
+    )
+}
+
+```
+
 Browse the data.
 
 ```{r}
@@ -53,7 +120,7 @@ clean_data |> skim()
 ```{r}
 #| label: data exploration
 
-transit <- readRDS("transit-stops-by-census-tract.rda") #NB to read this in properly
+transit <- readRDS("transit-stops-by-census-tract.rda")
 
 ```
 
