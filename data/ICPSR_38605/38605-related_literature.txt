@@ -1,0 +1,48 @@
+Bibliography
+National Neighborhood Data Archive (NaNDA): Public Transit Stops by Census
+Tract and ZIP Code Tabulation Area, United States, 2016-2018 and 2024
+
+This bibliography includes published and unpublished works that are related 
+to ICPSR study 38605. It includes works that are based on primary
+or secondary analysis of the data, or which describe or critique those
+data or the collection methodology. 
+
+If you publish a work or know of other works that are based on these data,
+please send the complete citation and name of the ICPSR study used to:
+icpsr-biblio-notify@umich.edu 
+
+
+1. Cheung, Ethan Siu Leung, "Neighborhood gentrification and food
+insecurity among urban older adults: Evidence from New York City."
+Gerontologist. 2024, 64, (7), gnae048. DOI: 10.1093/geront/gnae048
+
+2. Herman, William H.; Villatoro, Claudia; Joiner, Kevin L.; McEwen, Laura
+N., "Uptake, retention, and outcomes of the National Diabetes Prevention
+Program by enrollee characteristics and program type." Diabetes Research
+and Clinical Practice. 2023, 203,. DOI: 10.1016/j.diabres.2023.110835
+
+3. Khan, A.M.; Lin, P.; Kamdar, N.; Mahmoudi, E.; Clarke, P., "Continuity
+of care in adults aging with cerebral palsy and spina bifida: The
+importance of community healthcare and socioeconomic context."
+Disabilities. 2023, 3, (2), 295 - 306. DOI: 10.3390/disabilities3020019
+
+4. Khan, Anam M.; Lin, Paul; Kamdar, Neil; Mahmoudi, Elham; Latham-Mintus,
+Kenzie; Kobayashi, Lindsay; Clarke, Philippa, "Location matters: The role
+of the neighborhood environment for incident cardiometabolic disease in
+adults aging with physical disability." American Journal of Health
+Promotion. Jun 2024, 38, (5), 633 - 640. DOI: 10.1177/08901171241228017
+
+5. Ross, Katherine E.T.; Cleary, Jennifer; Fang, Yu; Richmond-Rakerd, Leah
+S.; Sen, Srijan, "The Effect of Built Neighborhood Characteristics on
+Physical Activity." SSRN, Jun 2023.. DOI: 10.2139/ssrn.4469381
+Abstract: https://ssrn.com/abstract=4469381
+
+6. Stolper, Samuel; Taiebat, Morteza, "Getting from Ridehailing to
+Ridesharing: Effects of a Congestion Tax in Chicago." Feb 28, 2024..
+Full text PDF: https://sstolper.github.io/website-stuff/Stolper_Taiebat_2024_manuscript_appendix.pdf
+
+7. Twardzik, Erica; Falvey, Jason R.; Clarke, Philippa J.; Freedman, Vicki
+A.; Schrack, Jennifer A., "Public transit stop density is associated with
+walking for exercise among a national sample of older adults." BMC
+Geriatrics. 2023, 23, (596),. DOI: 10.1186/s12877-023-04253-x
+Full text PDF: https://sstolper.github.io/website-stuff/Stolper_Taiebat_2024_manuscript_appendix.pdf

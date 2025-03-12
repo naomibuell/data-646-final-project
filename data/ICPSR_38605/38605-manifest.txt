@@ -1,0 +1,158 @@
+File Manifest for ICPSR 38605
+
+Pan, Longrong, Robert Melendez, Philippa Clarke, Grace Noppert, Iris Gomez-
+Lopez, Megan Chenoweth, Anam Khan, Mao Li, and Lindsay Gypin. National
+Neighborhood Data Archive (NaNDA): Public Transit Stops by Census Tract and
+ZIP Code Tabulation Area, United States, 2016-2018 and 2024. ICPSR38605-v2.
+Ann Arbor, MI: Inter-university Consortium for Political and Social
+Research [distributor], 2024-12-11. http://doi.org/10.3886/ICPSR38605.v2
+
+Details on the version history can be found below the file listings.
+
+
+Study-level Documentation
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    38605-descriptioncitation.pdf       -       -         -       2024-12-11  -
+
+    38605-related_literature.txt        -       -         -       daily       -
+
+    38605-manifest.txt                  -       -         -       daily       -
+
+
+DS0001 Public Transit Stops by Census Tract 2016-2018 Data
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    38605-0001-Codebook-ICPSR.epub      -       -         -       2024-12-11  cf91f1f2a1f6fec639276bb187ea4347
+
+    38605-0001-Codebook-ICPSR.pdf       -       -         -       2024-12-11  73be3f498b5c55a69db1094121a94ec2
+
+    38605-0001-Data.dta                 -       73,803    6       2024-12-11  91c3ea9ab42c7d8d1da00421e0867b4a
+
+    38605-0001-Data.rda                 -       73,803    6       2024-12-11  53cb833d70868c02c1444fe90b5eeeb3
+
+    38605-0001-Data.sav                 -       73,803    6       2024-12-11  226dc3761689ff49a7cefebb5b42489f
+
+    38605-0001-Data.stc                 -       73,803    6       2024-12-11  825ee93a91a8116ee14da160c92c904c
+
+    38605-0001-Data.tsv                 -       73,803    6       2024-12-11  53d95795fd71eadd66368ea871b9769e
+
+    38605-0001-Data.txt                 58      73,803    6       2024-12-11  b7d08d7e9e00e6029dd71f4c5cb84ef8
+
+    38605-0001-Documentation.pdf        -       -         -       2024-12-11  6950fae708e2f983ef292f335655c1b9
+
+    38605-0001-Setup.dct                -       -         -       2024-12-11  845b236bef71abb061abd66c9237e090
+
+    38605-0001-Setup.do                 -       -         -       2024-12-11  63073f3dabfd99283b7fa86c7d3b1a50
+
+    38605-0001-Setup.sas                -       -         -       2024-12-11  a4d6248193051925fad1c58a2d89db1c
+
+    38605-0001-Setup.sps                -       -         -       2024-12-11  2873b2af108d23135a14a5fe61bbb92e
+
+
+DS0002 Public Transit Stops by ZIP Code Tabulation Area 2016-2018 Data
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    38605-0002-Codebook-ICPSR.epub      -       -         -       2024-12-11  24bf130587a95b0eb422c8d29b225d68
+
+    38605-0002-Codebook-ICPSR.pdf       -       -         -       2024-12-11  c5f82d7b4814b749c2b6df7011a1b42f
+
+    38605-0002-Data.dta                 -       33,144    6       2024-12-11  37edca8aa7737c7e1d4d57d7222e5191
+
+    38605-0002-Data.rda                 -       33,144    6       2024-12-11  5f3c0bab2f149469c25c65fba775654b
+
+    38605-0002-Data.sav                 -       33,144    6       2024-12-11  045a6f20478c3eaf41bab00b0f0303ef
+
+    38605-0002-Data.stc                 -       33,144    6       2024-12-11  6a720ee786103c12a59d8bf852e768f6
+
+    38605-0002-Data.tsv                 -       33,144    6       2024-12-11  455e206d5ce838df8cc6a99dee3f2879
+
+    38605-0002-Data.txt                 59      33,144    6       2024-12-11  2f86a7b0d1080761cbdfe51d2ef3b1dd
+
+    38605-0002-Documentation.pdf        -       -         -       2024-12-11  916762aeece783217d0bb78f5e4d8c11
+
+    38605-0002-Setup.dct                -       -         -       2024-12-11  3fc30274de658a2f8d4334f9788911b6
+
+    38605-0002-Setup.do                 -       -         -       2024-12-11  0e3234ad24f8d8a53f1567897998f0df
+
+    38605-0002-Setup.sas                -       -         -       2024-12-11  6d0a5c4bad035f5988922029505c929e
+
+    38605-0002-Setup.sps                -       -         -       2024-12-11  5e7c79ea94d890e494b72ec1e11cdafb
+
+
+DS0003 Public Transit Stops by Census Tract 2024 Data
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    38605-0003-Codebook-ICPSR.epub      -       -         -       2024-12-11  cf17fd185c336fffd7a4535d88cc2f1d
+
+    38605-0003-Codebook-ICPSR.pdf       -       -         -       2024-12-11  0f14f385f514e755ff1f78c03d1781e4
+
+    38605-0003-Data.dta                 -       85,528    6       2024-12-11  ad229f37339f8862c92200a428c45e28
+
+    38605-0003-Data.rda                 -       85,528    6       2024-12-11  c09070cb3ea40063dba36985a2f83928
+
+    38605-0003-Data.sav                 -       85,528    6       2024-12-11  b4fb3da66229aca352dbe50a5a5766aa
+
+    38605-0003-Data.stc                 -       85,528    6       2024-12-11  0a1b1e7767cb44404a7926c83861e609
+
+    38605-0003-Data.tsv                 -       85,528    6       2024-12-11  4e85a5e08dd9665fb3187ca02a66b6a2
+
+    38605-0003-Data.txt                 64      85,528    6       2024-12-11  337f8d780ac2f3ee724e81374de88a09
+
+    38605-0003-Documentation-MULTI.pdf  -       -         -       2024-12-11  f8d150380420e2edb93b9a9f4362277f
+
+    38605-0003-Setup.dct                -       -         -       2024-12-11  6f5cc2311b986fe08f887b443e69aab3
+
+    38605-0003-Setup.do                 -       -         -       2024-12-11  5f174386141580417bb3736f8295a32e
+
+    38605-0003-Setup.sas                -       -         -       2024-12-11  9b828cc6c03ac3f5c5fde1beec72e7f6
+
+    38605-0003-Setup.sps                -       -         -       2024-12-11  2f5802e16186d1bec3a8f9abdfdf8fea
+
+
+DS0004 Public Transit Stops by ZIP Code Tabulation Area 2024 Data
+
+    Filename                            Record  Record    Var.    Date        MD5
+                                        Length  Count     Count   Updated     Checksum
+
+    38605-0004-Codebook-ICPSR.epub      -       -         -       2024-12-11  4b3ac3978274c7cd4a6c4ea9322a7f98
+
+    38605-0004-Codebook-ICPSR.pdf       -       -         -       2024-12-11  221e26d128c9931aa948f90ea4847970
+
+    38605-0004-Data.dta                 -       33,653    6       2024-12-11  90de9605b70ecfc89c997a890b33eb7d
+
+    38605-0004-Data.rda                 -       33,653    6       2024-12-11  6db238899b1897ebf55247c632a3746f
+
+    38605-0004-Data.sav                 -       33,653    6       2024-12-11  998f13373569d04c6d2532fcfd8a2925
+
+    38605-0004-Data.stc                 -       33,653    6       2024-12-11  7ff64898c9f3ebc08899fb92386438e0
+
+    38605-0004-Data.tsv                 -       33,653    6       2024-12-11  dfd2adfe57b33f7b5d9a3e906d5a3d02
+
+    38605-0004-Data.txt                 59      33,653    6       2024-12-11  1a576db654fdd2cf76755c07e25281aa
+
+    38605-0004-Documentation-MULTI.pdf  -       -         -       2024-12-11  f8d150380420e2edb93b9a9f4362277f
+
+    38605-0004-Setup.dct                -       -         -       2024-12-11  5111f0ed03d0d6029996f7e86292a300
+
+    38605-0004-Setup.do                 -       -         -       2024-12-11  91d22572297cf4c4bc868c902e1f2837
+
+    38605-0004-Setup.sas                -       -         -       2024-12-11  ac2f7ee94150421850cd4be9e2c6ff81
+
+    38605-0004-Setup.sps                -       -         -       2024-12-11  a8ab7be679177b19c1624b221f733f8f
+
+
+Version History
+
+2024-12-11 The study was updated to include the 2024 Public Transit Stops
+by Census Tract (DS3) and ZIP Code Tabulation Area (DS4) data and
+documentation. Additionally, data and documentation for datasets 1 and 2
+were re-released to incorporate the updated study title.
