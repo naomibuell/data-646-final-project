@@ -12,16 +12,14 @@ freeze: true
 #| label: load packages
 #| echo: false
 
-pacman::p_load(
-    tidyverse,
-    janitor,
-    httr,
-    jsonlite,
-    skimr,
-    RSocrata,
-    CDCPLACES,
-    readr
-)
+library(tidyverse)
+library(janitor)
+library(httr)
+library(jsonlite)
+library(skimr)
+library(RSocrata)
+library(CDCPLACES)
+library(readr)
 ```
 
 Load [PLACES: Local Data for Better Health, Census Tract Data 2024 release](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Census-Tract-D/cwsq-ngmh/about_data) using [@CDCPLACES] [@Greenlund2022]. This is 2022 data.
@@ -30,7 +28,7 @@ Load [PLACES: Local Data for Better Health, Census Tract Data 2024 release](http
 #| label: get-cdc-data-with-CDCPLACES-package
 dict <- get_dictionary()
 
-cdc_places <- get_places(
+cdc_places <- CDCPLACES::get_places(
     geography = "census",
     measure = c("ISOLATION", "LACKTRPT", "EMOTIONSPT"),
     age_adjust = TRUE
