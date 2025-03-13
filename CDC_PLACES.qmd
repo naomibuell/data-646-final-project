@@ -4,6 +4,7 @@ author: "Naomi Buell and Richie Rivera"
 format: html
 bibliography: references.bib
 freeze: true
+include: false
 ---
 
 ## Intro
@@ -40,7 +41,7 @@ Browse the CDC data.
 
 ```{r}
 #| label: summ-CDC-data
-cdc_places |> summary()
+# cdc_places |> summary()
 # cdc_places |> skim()
 cdc_places |> head()
 ```
@@ -83,9 +84,9 @@ transit |> head()
 Merge data.
 
 ```{r}
-data <- cdc_places |>
-              rename(tract_fips20 = locationid) |>
-  full_join(transit, by = tract_fips20)
+# data <- cdc_places |>
+#               rename(tract_fips20 = locationid) |>
+#   full_join(transit, by = tract_fips20)
 ```
 
 Browse merged data.
