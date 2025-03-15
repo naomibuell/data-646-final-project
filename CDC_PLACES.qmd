@@ -84,9 +84,9 @@ transit |> head()
 Merge data.
 
 ```{r}
-# data <- cdc_places |>
-#               rename(tract_fips20 = locationid) |>
-#   full_join(transit, by = tract_fips20)
+ data <- cdc_places |>
+              rename(tract_fips20 = locationname) |>
+  full_join(transit)
 ```
 
 Browse merged data.
