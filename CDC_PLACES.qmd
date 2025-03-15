@@ -34,7 +34,8 @@ cdc_places <- CDCPLACES::get_places(
     measure = c("ISOLATION", "LACKTRPT", "EMOTIONSPT"),
     age_adjust = TRUE
 ) |>
-    clean_names()
+    clean_names() |>
+    filter(measure == "Feeling socially isolated among adults")
 ```
 
 Browse the CDC data.
@@ -67,7 +68,8 @@ Get [Public Transit Stops by Census Tract and ZIP Code Tabulation Area, United S
 #| label: get-transit
 
 transit <- read_table("data/ICPSR_38605/DS0003/38605-0003-Data.tsv") |>
-    clean_names()
+    clean_names() |>
+    mutate_all(~replace(., is.na(.), 0)) # Filling the empty with 0 since they correspond with national parks
 ```
 
 Browse data.
@@ -94,9 +96,103 @@ Browse merged data.
 ```{r}
 #| label: browse-merged-data
 
-data |> head()
+#data |> head()
 #data |> skim()
 #data |> summary()
+
+nulls_df <- data |>
+  select(stateabbr, count_ntm_stops) |> 
+  group_by(stateabbr) |>
+  summarise(
+    Null_Count = sum(is.na(count_ntm_stops)),
+    Non_Null_Count = sum(!is.na(count_ntm_stops))) |> 
+    arrange(desc(Null_Count))
+
+print(nulls_df, n=100)
+```
+
+There are missing states, what are they?
+```{r}
+# Complete list of state abbreviations
+all_states <- state.abb
+
+# Unique, non-missing state abbreviations in your data
+present_states <- unique(nulls_df$stateabbr)
+
+# Determine missing states
+missing_states <- setdiff(all_states, present_states)
+
+# Display missing states
+print(missing_states)
+
+```
+
+Filtering missing information. These are documented by Naomi in our Paper.
+We have missing states. CT is omitted because there is no data on it from the transit stop dataset.
+
+```{r}
+df <- data |>
+  mutate(density_per_sqmi = tot_pop_2020/census_tract_area20) |> # creating a population land density measure
+  filter(stateabbr != "CT") |> # Removing CT
+  filter(!is.na(stateabbr)) |> # Removing states where there is no data
+  select(tract_fips20, count_ntm_stops, stops_per_capita, density_per_sqmi, data_value) # Selecting our columns of interest
+
+head(df)
+
+# 11001980000 - NATIONAL MALL   - has a pop of 17 
+# 36061014300 - CENTRAL PARK    - has a pop of 1  
+```
+
+Viewing the distribution of our modeling variables
+
+```{r}
+library(ggplot2)
+
+hist_df <- df |>
+  select(count_ntm_stops, stops_per_capita, density_per_sqmi, data_value) |>
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
+
+ggplot(hist_df, aes(x = value)) +
+  geom_histogram(bins = 30, fill = "steelblue", color = "black", alpha = 0.7) +
+  facet_wrap(~ variable, scales = "free") +
+  theme_minimal() +
+  labs(title = "Histograms of Stops Per Capita, Density Per Sqmi, and Data Value",
+       x = "Value",
+       y = "Count")
+
+df |>
+  arrange(desc(stops_per_capita)) |>
+  head(50)
+```
+
+The field `stops_per_capita` has way too many really high values. Like there's a 12k in there when the mean value is 2.
+We'll remove outliers defined as `Q3 + 1.5 * IQR`:
+
+```{r}
+get_upper_outlier_threshold <- function(data) {
+  Q3 <- quantile(data, 0.75) # Third quartile
+  IQR_value <- IQR(data) # Interquartile range
+  upper_bound <- Q3 + 1.5 * IQR_value
+
+  return(upper_bound)
+}
+
+hist_df <- df |>
+  filter(stops_per_capita < get_upper_outlier_threshold(df$stops_per_capita)) |>
+  select(count_ntm_stops, stops_per_capita, density_per_sqmi, data_value) |>
+  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
+
+ggplot(hist_df, aes(x = value)) +
+  geom_histogram(bins = 30, fill = "steelblue", color = "black", alpha = 0.7) +
+  facet_wrap(~ variable, scales = "free") +
+  theme_minimal() +
+  labs(title = "Histograms of Stops Per Capita, Density Per Sqmi, and Data Value",
+       x = "Value",
+       y = "Count")
+
+df |>
+  arrange(desc(stops_per_capita)) |>
+  head(50)
 ```
 
 ## Investigate: Does access to public transportation (measured by number of available stops per census tract) have impact on feeling socially isolated?
@@ -128,3 +224,7 @@ stops_per_capita
 stops_per_sqmile
 
 :   Transit stops per square mile
+
+census_tract_area20
+
+:   Census land area, square miles 
