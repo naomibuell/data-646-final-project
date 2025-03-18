@@ -3,15 +3,15 @@ title: "Does public transportation decrease loneliness and social isolation?"
 author: "Naomi Buell and Richie Rivera"
 format: html
 bibliography: references.bib
-freeze: true
-include: false
+echo: false
 ---
 
-## Intro
+## Load data
 
 ```{r}
 #| label: load packages
 #| echo: false
+#| include: false
 
 library(tidyverse)
 library(janitor)
@@ -21,6 +21,7 @@ library(skimr)
 library(RSocrata)
 library(CDCPLACES)
 library(readr)
+library(ggplot2)
 ```
 
 Load [PLACES: Local Data for Better Health, Census Tract Data 2024 release](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Census-Tract-D/cwsq-ngmh/about_data) using [@CDCPLACES] [@Greenlund2022]. This is 2022 data.
@@ -31,35 +32,14 @@ dict <- get_dictionary()
 
 cdc_places <- CDCPLACES::get_places(
     geography = "census",
-    measure = c("ISOLATION", "LACKTRPT", "EMOTIONSPT"),
+    measure = c("ISOLATION"), # "LACKTRPT", "EMOTIONSPT"), // Removing lack of transport and emotional support variables.
     age_adjust = TRUE
 ) |>
     clean_names() |>
-    filter(measure == "Feeling socially isolated among adults")
-```
+    select(stateabbr, locationname, data_value, starts_with("totalpopulation")) # Consider pulling geolocation variable if mapping
 
-Browse the CDC data.
-
-```{r}
-#| label: summ-CDC-data
-# cdc_places |> summary()
-# cdc_places |> skim()
+# Browse
 cdc_places |> head()
-```
-
-```{r}
-#| label: get-data-with-R-Socrata
-#| include: false
-
-## Install the required package with:
-## install.packages("RSocrata")
-
-# df <- read.socrata(
-#    "https://data.cdc.gov/resource/cwsq-ngmh.json",
-#    app_token = "Oor3v3DJAEoCdk17eeRa8uhFK",
-#    email = "naomi.buell13@spsmail.cuny.edu",
-#    password = "H@FT5%yuKwX7fw!R" # Replace with actual password
-# )
 ```
 
 Get [Public Transit Stops by Census Tract and ZIP Code Tabulation Area, United States, 2024](https://www.icpsr.umich.edu/web/ICPSR/studies/38605/datadocumentation#) from the National Neighborhood Data Archive (NaNDA) [@pan2023].
@@ -69,49 +49,63 @@ Get [Public Transit Stops by Census Tract and ZIP Code Tabulation Area, United S
 
 transit <- read_table("data/ICPSR_38605/DS0003/38605-0003-Data.tsv") |>
     clean_names() |>
-    mutate_all(~replace(., is.na(.), 0)) # Filling the empty with 0 since they correspond with national parks
+    mutate_all(~ replace(., is.na(.), 0)) # Filling the empty with 0 since they correspond with national parks
+
+# Browse
+transit |> head()
 ```
 
-Browse data.
+Get 2010 USDA-ERS Rural Urban Commuting Area (RUCA) Code classification scheme for Census tracts [@paykin2022].
 
 ```{r}
-#| label: browse-transit-data
-#|
-transit |> head()
-# transit |> skim()
-# transit |> summary()
+#| label: get-RUCA
 
+ruca <- read_csv(
+    "https://raw.githubusercontent.com/spaykin/rural-urban-classification/refs/heads/main/data_final/RuralSubUrban_T.csv"
+) |>
+    clean_names() |>
+    rename(tract_fips20 = tract_fips) |>
+    select(tract_fips20, rurality)
+
+
+ruca |> head()
 ```
 
 Merge data.
 
 ```{r}
- data <- cdc_places |>
-              rename(tract_fips20 = locationname) |>
-  full_join(transit)
+#| label: merge
+
+data <- cdc_places |>
+    rename(tract_fips20 = locationname) |>
+    full_join(transit) |>
+    full_join(ruca)
+
+data |> head()
+data |> skim()
 ```
 
-Browse merged data.
+## Exploratory data analysis
+
+Investigate missings in merged data.
 
 ```{r}
 #| label: browse-merged-data
 
-#data |> head()
-#data |> skim()
-#data |> summary()
-
 nulls_df <- data |>
-  select(stateabbr, count_ntm_stops) |> 
-  group_by(stateabbr) |>
-  summarise(
-    Null_Count = sum(is.na(count_ntm_stops)),
-    Non_Null_Count = sum(!is.na(count_ntm_stops))) |> 
+    select(stateabbr, count_ntm_stops) |>
+    group_by(stateabbr) |>
+    summarise(
+        Null_Count = sum(is.na(count_ntm_stops)),
+        Non_Null_Count = sum(!is.na(count_ntm_stops))
+    ) |>
     arrange(desc(Null_Count))
 
-print(nulls_df, n=100)
+print(nulls_df, n = 100)
 ```
 
-There are missing states, what are they?
+Investigate states with missing data.
+
 ```{r}
 # Complete list of state abbreviations
 all_states <- state.abb
@@ -124,78 +118,105 @@ missing_states <- setdiff(all_states, present_states)
 
 # Display missing states
 print(missing_states)
-
 ```
 
-Filtering missing information. These are documented by Naomi in our Paper.
-We have missing states. CT is omitted because there is no data on it from the transit stop dataset.
+Filtering missing information (dropped observations are documented in our paper). CT is omitted because there is no data on it from the transit stop dataset.
 
 ```{r}
+#| label: remove-missings
+
 df <- data |>
-  mutate(density_per_sqmi = tot_pop_2020/census_tract_area20) |> # creating a population land density measure
-  filter(stateabbr != "CT") |> # Removing CT
-  filter(!is.na(stateabbr)) |> # Removing states where there is no data
-  select(tract_fips20, count_ntm_stops, stops_per_capita, density_per_sqmi, data_value) # Selecting our columns of interest
+    mutate(density_per_sqmi = tot_pop_2020 / census_tract_area20) |> # creating a population land density measure
+    filter(stateabbr != "CT") |> # Removing CT
+    filter(!is.na(stateabbr)) |> # Removing states where there is no data
+    select(
+        tract_fips20,
+        count_ntm_stops,
+        stops_per_capita,
+        density_per_sqmi,
+        data_value,
+        rurality
+    ) # Selecting our columns of interest
 
 head(df)
 
-# 11001980000 - NATIONAL MALL   - has a pop of 17 
-# 36061014300 - CENTRAL PARK    - has a pop of 1  
+# 11001980000 - NATIONAL MALL   - has a pop of 17
+# 36061014300 - CENTRAL PARK    - has a pop of 1
 ```
 
-Viewing the distribution of our modeling variables
+Viewing the distribution of our modeling variables.
 
 ```{r}
-library(ggplot2)
 
 hist_df <- df |>
-  select(count_ntm_stops, stops_per_capita, density_per_sqmi, data_value) |>
-  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
+    select(count_ntm_stops, stops_per_capita, density_per_sqmi, data_value) |>
+    pivot_longer(
+        cols = everything(),
+        names_to = "variable",
+        values_to = "value"
+    )
 
 ggplot(hist_df, aes(x = value)) +
-  geom_histogram(bins = 30, fill = "steelblue", color = "black", alpha = 0.7) +
-  facet_wrap(~ variable, scales = "free") +
-  theme_minimal() +
-  labs(title = "Histograms of Stops Per Capita, Density Per Sqmi, and Data Value",
-       x = "Value",
-       y = "Count")
+    geom_histogram(
+        bins = 30,
+        fill = "steelblue",
+        color = "black",
+        alpha = 0.7
+    ) +
+    facet_wrap(~variable, scales = "free") +
+    theme_minimal() +
+    labs(
+        title = "Histograms of Stops Per Capita, Density Per Sqmi, and Data Value",
+        x = "Value",
+        y = "Count"
+    )
 
 df |>
-  arrange(desc(stops_per_capita)) |>
-  head(50)
+    arrange(desc(stops_per_capita)) |>
+    head(50)
 ```
 
-The field `stops_per_capita` has way too many really high values. Like there's a 12k in there when the mean value is 2.
-We'll remove outliers defined as `Q3 + 1.5 * IQR`:
+The field `stops_per_capita` has high outliers (e.g., 12k stops per capita observation when mean value is 2). We remove outliers defined as `Q3 + 1.5 * IQR`.
 
 ```{r}
 get_upper_outlier_threshold <- function(data) {
-  Q3 <- quantile(data, 0.75) # Third quartile
-  IQR_value <- IQR(data) # Interquartile range
-  upper_bound <- Q3 + 1.5 * IQR_value
+    Q3 <- quantile(data, 0.75) # Third quartile
+    IQR_value <- IQR(data) # Interquartile range
+    upper_bound <- Q3 + 1.5 * IQR_value
 
-  return(upper_bound)
+    return(upper_bound)
 }
 
 hist_df <- df |>
-  filter(stops_per_capita < get_upper_outlier_threshold(df$stops_per_capita)) |>
-  select(count_ntm_stops, stops_per_capita, density_per_sqmi, data_value) |>
-  pivot_longer(cols = everything(), names_to = "variable", values_to = "value")
+    filter(
+        stops_per_capita < get_upper_outlier_threshold(df$stops_per_capita)
+    ) |>
+    select(count_ntm_stops, stops_per_capita, density_per_sqmi, data_value) |>
+    pivot_longer(
+        cols = everything(),
+        names_to = "variable",
+        values_to = "value"
+    )
 
 ggplot(hist_df, aes(x = value)) +
-  geom_histogram(bins = 30, fill = "steelblue", color = "black", alpha = 0.7) +
-  facet_wrap(~ variable, scales = "free") +
-  theme_minimal() +
-  labs(title = "Histograms of Stops Per Capita, Density Per Sqmi, and Data Value",
-       x = "Value",
-       y = "Count")
+    geom_histogram(
+        bins = 30,
+        fill = "steelblue",
+        color = "black",
+        alpha = 0.7
+    ) +
+    facet_wrap(~variable, scales = "free") +
+    theme_minimal() +
+    labs(
+        title = "Histograms of Stops Per Capita, Density Per Sqmi, and Data Value",
+        x = "Value",
+        y = "Count"
+    )
 
 df |>
-  arrange(desc(stops_per_capita)) |>
-  head(50)
+    arrange(desc(stops_per_capita)) |>
+    head(50)
 ```
-
-## Investigate: Does access to public transportation (measured by number of available stops per census tract) have impact on feeling socially isolated?
 
 ## Hypothesis test
 
@@ -227,4 +248,4 @@ stops_per_sqmile
 
 census_tract_area20
 
-:   Census land area, square miles 
+:   Census land area, square miles
