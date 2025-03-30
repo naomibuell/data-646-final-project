@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.40">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Naomi Buell and Richie Rivera">
+
+<title>Does public transportation decrease loneliness and social isolation?</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="MidTermReportEDA_files/libs/clipboard/clipboard.min.js"></script>
+<script src="MidTermReportEDA_files/libs/quarto-html/quarto.js"></script>
+<script src="MidTermReportEDA_files/libs/quarto-html/popper.min.js"></script>
+<script src="MidTermReportEDA_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="MidTermReportEDA_files/libs/quarto-html/anchor.min.js"></script>
+<link href="MidTermReportEDA_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="MidTermReportEDA_files/libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="MidTermReportEDA_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="MidTermReportEDA_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="MidTermReportEDA_files/libs/bootstrap/bootstrap-973236bd072d72a04ee9cd82dcc9cb29.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Does public transportation decrease loneliness and social isolation?</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Naomi Buell and Richie Rivera </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="load-data" class="level2">
+<h2 class="anchored" data-anchor-id="load-data">Load data</h2>
+<p>Load <a href="https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Census-Tract-D/cwsq-ngmh/about_data">PLACES: Local Data for Better Health, Census Tract Data 2024 release</a> using <span class="citation" data-cites="CDCPLACES">(<a href="#ref-CDCPLACES" role="doc-biblioref">2025</a>)</span> <span class="citation" data-cites="Greenlund2022">(<a href="#ref-Greenlund2022" role="doc-biblioref">Greenlund et al. 2022</a>)</span>. This is 2022 data.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>  stateabbr locationname data_value totalpopulation
+1        WA  53021020101       43.0            2532
+2        WA  53007960803       36.2            3681
+3        WA  53011041334       34.6            2958
+4        WA  53001950303       37.0            3067
+5        WA  53005010815       32.8            9675
+6        WA  53021020404       42.7            2615</code></pre>
+</div>
+</div>
+<p>Get <a href="https://www.icpsr.umich.edu/web/ICPSR/studies/38605/datadocumentation#">Public Transit Stops by Census Tract and ZIP Code Tabulation Area, United States, 2024</a> from the National Neighborhood Data Archive (NaNDA) <span class="citation" data-cites="pan2023">(<a href="#ref-pan2023" role="doc-biblioref">Pan et al. 2023</a>)</span>.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 6
+  tract_fips20 census_tract_area20 tot_pop_2020 count_ntm_stops stops_per_capita
+  &lt;chr&gt;                      &lt;dbl&gt;        &lt;dbl&gt;           &lt;dbl&gt;            &lt;dbl&gt;
+1 01001020100                3.79          1941               0                0
+2 01001020200                1.28          1757               0                0
+3 01001020300                2.07          3694               0                0
+4 01001020400                2.46          3539               0                0
+5 01001020501                2.40          4306               0                0
+6 01001020502                0.810         3100               0                0
+# ℹ 1 more variable: stops_per_sqmile &lt;dbl&gt;</code></pre>
+</div>
+</div>
+<p>Get 2010 USDA-ERS Rural Urban Commuting Area (RUCA) Code classification scheme for Census tracts <span class="citation" data-cites="paykin2022">(<a href="#ref-paykin2022" role="doc-biblioref">Paykin et al. 2022</a>)</span>.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 4
+  tract_fips20 ruca1 ruca2 rurality
+  &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt;   
+1 01001020100      1     1 Urban   
+2 01001020200      1     1 Urban   
+3 01001020300      1     1 Urban   
+4 01001020400      1     1 Urban   
+5 01001020500      1     1 Urban   
+6 01001020600      1     1 Urban   </code></pre>
+</div>
+</div>
+<p>Merge data.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>  stateabbr tract_fips20 data_value totalpopulation census_tract_area20
+1        WA  53021020101       43.0            2532           4.1813946
+2        WA  53007960803       36.2            3681           0.7035735
+3        WA  53011041334       34.6            2958           1.7914615
+4        WA  53001950303       37.0            3067          45.7955475
+5        WA  53005010815       32.8            9675           6.3684745
+6        WA  53021020404       42.7            2615           0.4565612
+  tot_pop_2020 count_ntm_stops stops_per_capita stops_per_sqmile ruca1 ruca2
+1         2319              13         5.605865         3.109011    NA    NA
+2         3883              26         6.695854        36.954205    NA    NA
+3         3610               0         0.000000         0.000000    NA    NA
+4         2514               0         0.000000         0.000000    NA    NA
+5         8060              16         1.985112         2.512376    NA    NA
+6         2734              12         4.389174        26.283443    NA    NA
+  rurality
+1     &lt;NA&gt;
+2     &lt;NA&gt;
+3     &lt;NA&gt;
+4     &lt;NA&gt;
+5     &lt;NA&gt;
+6     &lt;NA&gt;</code></pre>
+</div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Data summary</caption>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Name</td>
+<td style="text-align: left;">data</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Number of rows</td>
+<td style="text-align: left;">97902</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Number of columns</td>
+<td style="text-align: left;">12</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">_______________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Column type frequency:</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">character</td>
+<td style="text-align: left;">3</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">factor</td>
+<td style="text-align: left;">1</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">numeric</td>
+<td style="text-align: left;">8</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">________________________</td>
+<td style="text-align: left;"></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Group variables</td>
+<td style="text-align: left;">None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: character</strong></p>
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 21%">
+<col style="width: 13%">
+<col style="width: 18%">
+<col style="width: 5%">
+<col style="width: 5%">
+<col style="width: 8%">
+<col style="width: 12%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">min</th>
+<th style="text-align: right;">max</th>
+<th style="text-align: right;">empty</th>
+<th style="text-align: right;">n_unique</th>
+<th style="text-align: right;">whitespace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">stateabbr</td>
+<td style="text-align: right;">34015</td>
+<td style="text-align: right;">0.65</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">40</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">tract_fips20</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">11</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">97902</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">totalpopulation</td>
+<td style="text-align: right;">34015</td>
+<td style="text-align: right;">0.65</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">8013</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: factor</strong></p>
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 15%">
+<col style="width: 11%">
+<col style="width: 15%">
+<col style="width: 8%">
+<col style="width: 10%">
+<col style="width: 38%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: left;">ordered</th>
+<th style="text-align: right;">n_unique</th>
+<th style="text-align: left;">top_counts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">rurality</td>
+<td style="text-align: right;">23900</td>
+<td style="text-align: right;">0.76</td>
+<td style="text-align: left;">FALSE</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: left;">Urb: 52751, Sub: 11095, Rur: 10156</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Variable type: numeric</strong></p>
+<table class="caption-top table table-sm table-striped small">
+<colgroup>
+<col style="width: 19%">
+<col style="width: 9%">
+<col style="width: 13%">
+<col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 4%">
+<col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 7%">
+<col style="width: 8%">
+<col style="width: 5%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">skim_variable</th>
+<th style="text-align: right;">n_missing</th>
+<th style="text-align: right;">complete_rate</th>
+<th style="text-align: right;">mean</th>
+<th style="text-align: right;">sd</th>
+<th style="text-align: right;">p0</th>
+<th style="text-align: right;">p25</th>
+<th style="text-align: right;">p50</th>
+<th style="text-align: right;">p75</th>
+<th style="text-align: right;">p100</th>
+<th style="text-align: left;">hist</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">data_value</td>
+<td style="text-align: right;">34015</td>
+<td style="text-align: right;">0.65</td>
+<td style="text-align: right;">33.72</td>
+<td style="text-align: right;">3.92</td>
+<td style="text-align: right;">19.5</td>
+<td style="text-align: right;">31.00</td>
+<td style="text-align: right;">33.50</td>
+<td style="text-align: right;">36.20</td>
+<td style="text-align: right;">52.60</td>
+<td style="text-align: left;">▁▆▇▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">census_tract_area20</td>
+<td style="text-align: right;">12374</td>
+<td style="text-align: right;">0.87</td>
+<td style="text-align: right;">41.35</td>
+<td style="text-align: right;">499.41</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.65</td>
+<td style="text-align: right;">1.73</td>
+<td style="text-align: right;">10.82</td>
+<td style="text-align: right;">85554.74</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">tot_pop_2020</td>
+<td style="text-align: right;">12374</td>
+<td style="text-align: right;">0.87</td>
+<td style="text-align: right;">3856.34</td>
+<td style="text-align: right;">1677.41</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">2680.00</td>
+<td style="text-align: right;">3711.00</td>
+<td style="text-align: right;">4876.00</td>
+<td style="text-align: right;">39373.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">count_ntm_stops</td>
+<td style="text-align: right;">12374</td>
+<td style="text-align: right;">0.87</td>
+<td style="text-align: right;">5.48</td>
+<td style="text-align: right;">10.20</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">8.00</td>
+<td style="text-align: right;">198.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">stops_per_capita</td>
+<td style="text-align: right;">12374</td>
+<td style="text-align: right;">0.87</td>
+<td style="text-align: right;">2.58</td>
+<td style="text-align: right;">115.08</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">2.06</td>
+<td style="text-align: right;">29000.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">stops_per_sqmile</td>
+<td style="text-align: right;">12374</td>
+<td style="text-align: right;">0.87</td>
+<td style="text-align: right;">9.90</td>
+<td style="text-align: right;">23.73</td>
+<td style="text-align: right;">0.0</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">9.70</td>
+<td style="text-align: right;">1000.54</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ruca1</td>
+<td style="text-align: right;">23900</td>
+<td style="text-align: right;">0.76</td>
+<td style="text-align: right;">2.56</td>
+<td style="text-align: right;">6.82</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">2.00</td>
+<td style="text-align: right;">99.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ruca2</td>
+<td style="text-align: right;">23900</td>
+<td style="text-align: right;">0.76</td>
+<td style="text-align: right;">2.56</td>
+<td style="text-align: right;">6.82</td>
+<td style="text-align: right;">1.0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">2.00</td>
+<td style="text-align: right;">99.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="exploratory-data-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="exploratory-data-analysis">Exploratory data analysis</h2>
+<section id="missingness" class="level3">
+<h3 class="anchored" data-anchor-id="missingness">Missingness</h3>
+<p>Investigate missings in merged data.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 41 × 3
+   stateabbr Null_Count Non_Null_Count
+   &lt;chr&gt;          &lt;int&gt;          &lt;int&gt;
+ 1 &lt;NA&gt;           11498          22517
+ 2 CT               876              0
+ 3 AK                 0            176
+ 4 AL                 0           1430
+ 5 AZ                 0           1740
+ 6 CA                 0           9070
+ 7 DC                 0            206
+ 8 DE                 0            257
+ 9 FL                 0           5077
+10 GA                 0           2784
+11 IA                 0            894
+12 ID                 0            455
+13 IN                 0           1685
+14 KS                 0            817
+15 KY                 0           1299
+16 MA                 0           1597
+17 MD                 0           1458
+18 ME                 0            400
+19 MI                 0           2904
+20 MN                 0           1500
+21 MO                 0           1648
+22 MS                 0            870
+23 MT                 0            317
+24 NC                 0           2647
+25 NE                 0            552
+26 NH                 0            347
+27 NJ                 0           2169
+28 NM                 0            603
+29 NV                 0            771
+30 OH                 0           3154
+31 OK                 0           1198
+32 RI                 0            246
+33 SC                 0           1312
+34 TN                 0           1682
+35 TX                 0           6844
+36 UT                 0            710
+37 VT                 0            192
+38 WA                 0           1770
+39 WI                 0           1525
+40 WV                 0            546
+41 WY                 0            159</code></pre>
+</div>
+</div>
+<p>Investigate states with missing data.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code> [1] "AR" "CO" "HI" "IL" "LA" "NY" "ND" "OR" "PA" "SD" "VA"</code></pre>
+</div>
+</div>
+<p>Filtering missing information (dropped observations are documented in our paper). CT is omitted because there is no data on it from the transit stop dataset.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>  stateabbr tract_fips20 count_ntm_stops stops_per_capita density_per_sqmi
+1        WA  53021020101              13         5.605865        554.59966
+2        WA  53007960803              26         6.695854       5518.96833
+3        WA  53011041334               0         0.000000       2015.11451
+4        WA  53001950303               0         0.000000         54.89617
+5        WA  53005010815              16         1.985112       1265.60922
+6        WA  53021020404              12         4.389174       5988.24458
+  data_value ruca1 ruca2 rurality tot_pop_2020 census_tract_area20
+1       43.0    NA    NA     &lt;NA&gt;         2319           4.1813946
+2       36.2    NA    NA     &lt;NA&gt;         3883           0.7035735
+3       34.6    NA    NA     &lt;NA&gt;         3610           1.7914615
+4       37.0    NA    NA     &lt;NA&gt;         2514          45.7955475
+5       32.8    NA    NA     &lt;NA&gt;         8060           6.3684745
+6       42.7    NA    NA     &lt;NA&gt;         2734           0.4565612</code></pre>
+</div>
+</div>
+</section>
+<section id="distribution" class="level3">
+<h3 class="anchored" data-anchor-id="distribution">Distribution</h3>
+<p>Viewing the distribution of our modeling variables.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="MidTermReportEDA_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   stateabbr tract_fips20 count_ntm_stops stops_per_capita density_per_sqmi
+1         DC  11001980000             162      12461.53809         5.168662
+2         CA  06059021813              29       9666.66699         1.830326
+3         CA  06037980034              21       2333.33325         3.662794
+4         CA  06075980300              45       1406.25000        19.107671
+5         MA  25025981300               7       1400.00000         1.853532
+6         FL  12086980500              35        795.45453         7.304077
+7         NV  32031980000             100        595.23810        42.226361
+8         CA  06037980033               8        571.42859         2.907526
+9         KY  21015980100              12        375.00000         3.465308
+10        CA  06073006200              16        347.82608        32.827866
+11        CA  06037980016              66        266.12903        49.589756
+12        CA  06037980008              15        230.76923        49.965254
+13        CA  06075980900              52        214.87604       173.993834
+14        CA  06037980011              16        213.33333       147.619050
+15        AL  01101000100             112        190.47620       678.117536
+16        CA  06037980014               8        177.77777        17.985242
+17        VT  50025967900             163        156.73077        29.326408
+18        NM  35049000400              36        132.35294       605.026187
+19        AZ  04013112512              57        118.75000       107.366612
+20        CA  06037980035              62        106.16438        96.854844
+21        CA  06037980024              21        105.52764        64.435288
+22        MI  26065980000              84        104.08922       105.428055
+23        DC  11001005802             159         88.38243      6827.063366
+24        CA  06075980501              13         84.96732       269.288816
+25        WA  53033023702              31         82.22812       279.079036
+26        NJ  34017006900               6         80.00000        54.517266
+27        CA  06059011714              58         75.32468       341.898553
+28        MI  26163985300              19         73.35907       620.472328
+29        MA  25019950500              66         69.18239        40.473795
+30        DC  11001010700             120         67.72009      5147.510707
+31        NV  32031003111             104         63.96064       206.112067
+32        NJ  34039980000              16         62.50000        50.018881
+33        MD  24510150500              78         62.05251      3389.676782
+34        TN  47065003100             131         61.93853      2963.762692
+35        UT  49011125600              19         61.48867       198.801268
+36        MI  26163524500               6         60.00000        91.748224
+37        CA  06067001103              72         59.65203      2662.370570
+38        MA  25019950307              24         58.53659        43.078859
+39        SC  45079003100              89         58.20798      1576.408148
+40        MD  24005408400              66         56.94564       301.375392
+41        MO  29189213102              27         56.84211        76.731269
+42        DC  11001010202              95         55.65319      4133.890950
+43        MN  27137002200              71         54.69954      1320.902247
+44        OH  39035114501              37         53.46821       567.694699
+45        AZ  04019000100              40         51.34788      2594.374329
+46        NV  32031000106              60         51.06383      5843.274961
+47        MD  24510080200              40         50.25126      2407.692976
+48        OH  39061026300              56         49.46996       607.503386
+49        MI  26163985100              34         49.41861       507.427335
+50        MN  27053980100              11         49.32735       162.912786
+   data_value ruca1 ruca2 rurality tot_pop_2020 census_tract_area20
+1        31.5    NA    NA     &lt;NA&gt;           13           2.5151575
+2        36.5     1     1    Urban            3           1.6390523
+3        35.3    NA    NA     &lt;NA&gt;            9           2.4571407
+4        37.5     1     1    Urban           32           1.6747200
+5        37.3     1     1    Urban            5           2.6975529
+6        32.4     1     1    Urban           44           6.0240331
+7        36.5     1     1    Urban          168           3.9785573
+8        36.5     1     1    Urban           14           4.8150907
+9        30.1    99    99    Rural           32           9.2343893
+10       30.9     1     1    Urban           46           1.4012486
+11       37.8    NA    NA     &lt;NA&gt;          248           5.0010328
+12       35.4     1     1    Urban           65           1.3009040
+13       38.1     1     1    Urban          242           1.3908539
+14       33.5    NA    NA     &lt;NA&gt;           75           0.5080645
+15       32.2     1     1    Urban          588           0.8671063
+16       32.4     1     1    Urban           45           2.5020514
+17       31.1    10    10    Rural         1040          35.4629173
+18       34.1     1     1    Urban          272           0.4495673
+19       37.3     1     1    Urban          480           4.4706635
+20       37.2    NA    NA     &lt;NA&gt;          584           6.0296416
+21       30.6     1     1    Urban          199           3.0883698
+22       48.2     1     1    Urban          807           7.6545091
+23       32.4    NA    NA     &lt;NA&gt;         1799           0.2635101
+24       31.4     1     1    Urban          153           0.5681632
+25       39.4    NA    NA     &lt;NA&gt;          377           1.3508718
+26       33.9     1     1    Urban           75           1.3757110
+27       35.7     1     1    Urban          770           2.2521300
+28       36.7     1     1    Urban          259           0.4174239
+29       29.1     8     8    Rural          954          23.5708065
+30       37.5     1     1    Urban         1772           0.3442441
+31       36.3    NA    NA     &lt;NA&gt;         1626           7.8889122
+32       37.2    NA    NA     &lt;NA&gt;          256           5.1180673
+33       38.4     1     1    Urban         1257           0.3708318
+34       33.4     1     1    Urban         2115           0.7136199
+35       41.9     1     1    Urban          309           1.5543160
+36       34.5     1     1    Urban          100           1.0899394
+37       37.9    NA    NA     &lt;NA&gt;         1207           0.4533554
+38       27.8     8     8    Rural          410           9.5174294
+39       37.7     1     1    Urban         1529           0.9699265
+40       30.0     1     1    Urban         1159           3.8457022
+41       34.1     1     1    Urban          475           6.1904359
+42       34.5    NA    NA     &lt;NA&gt;         1707           0.4129282
+43       26.3     1     1    Urban         1298           0.9826617
+44       36.9     1     1    Urban          692           1.2189651
+45       35.6     1     1    Urban          779           0.3002651
+46       33.9    NA    NA     &lt;NA&gt;         1175           0.2010859
+47       38.6     1     1    Urban          796           0.3306069
+48       39.1     1     1    Urban         1132           1.8633641
+49       37.4     1     1    Urban          688           1.3558592
+50       27.6    NA    NA     &lt;NA&gt;          223           1.3688306</code></pre>
+</div>
+</div>
+<p>The field <code>stops_per_capita</code> has high outliers (e.g., 12k stops per capita observation when mean value is 2). We remove outliers defined as <code>Q3 + 1.5 * IQR</code>.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="MidTermReportEDA_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   stateabbr tract_fips20 count_ntm_stops stops_per_capita density_per_sqmi
+1         DC  11001980000             162      12461.53809         5.168662
+2         CA  06059021813              29       9666.66699         1.830326
+3         CA  06037980034              21       2333.33325         3.662794
+4         CA  06075980300              45       1406.25000        19.107671
+5         MA  25025981300               7       1400.00000         1.853532
+6         FL  12086980500              35        795.45453         7.304077
+7         NV  32031980000             100        595.23810        42.226361
+8         CA  06037980033               8        571.42859         2.907526
+9         KY  21015980100              12        375.00000         3.465308
+10        CA  06073006200              16        347.82608        32.827866
+11        CA  06037980016              66        266.12903        49.589756
+12        CA  06037980008              15        230.76923        49.965254
+13        CA  06075980900              52        214.87604       173.993834
+14        CA  06037980011              16        213.33333       147.619050
+15        AL  01101000100             112        190.47620       678.117536
+16        CA  06037980014               8        177.77777        17.985242
+17        VT  50025967900             163        156.73077        29.326408
+18        NM  35049000400              36        132.35294       605.026187
+19        AZ  04013112512              57        118.75000       107.366612
+20        CA  06037980035              62        106.16438        96.854844
+21        CA  06037980024              21        105.52764        64.435288
+22        MI  26065980000              84        104.08922       105.428055
+23        DC  11001005802             159         88.38243      6827.063366
+24        CA  06075980501              13         84.96732       269.288816
+25        WA  53033023702              31         82.22812       279.079036
+26        NJ  34017006900               6         80.00000        54.517266
+27        CA  06059011714              58         75.32468       341.898553
+28        MI  26163985300              19         73.35907       620.472328
+29        MA  25019950500              66         69.18239        40.473795
+30        DC  11001010700             120         67.72009      5147.510707
+31        NV  32031003111             104         63.96064       206.112067
+32        NJ  34039980000              16         62.50000        50.018881
+33        MD  24510150500              78         62.05251      3389.676782
+34        TN  47065003100             131         61.93853      2963.762692
+35        UT  49011125600              19         61.48867       198.801268
+36        MI  26163524500               6         60.00000        91.748224
+37        CA  06067001103              72         59.65203      2662.370570
+38        MA  25019950307              24         58.53659        43.078859
+39        SC  45079003100              89         58.20798      1576.408148
+40        MD  24005408400              66         56.94564       301.375392
+41        MO  29189213102              27         56.84211        76.731269
+42        DC  11001010202              95         55.65319      4133.890950
+43        MN  27137002200              71         54.69954      1320.902247
+44        OH  39035114501              37         53.46821       567.694699
+45        AZ  04019000100              40         51.34788      2594.374329
+46        NV  32031000106              60         51.06383      5843.274961
+47        MD  24510080200              40         50.25126      2407.692976
+48        OH  39061026300              56         49.46996       607.503386
+49        MI  26163985100              34         49.41861       507.427335
+50        MN  27053980100              11         49.32735       162.912786
+   data_value ruca1 ruca2 rurality tot_pop_2020 census_tract_area20
+1        31.5    NA    NA     &lt;NA&gt;           13           2.5151575
+2        36.5     1     1    Urban            3           1.6390523
+3        35.3    NA    NA     &lt;NA&gt;            9           2.4571407
+4        37.5     1     1    Urban           32           1.6747200
+5        37.3     1     1    Urban            5           2.6975529
+6        32.4     1     1    Urban           44           6.0240331
+7        36.5     1     1    Urban          168           3.9785573
+8        36.5     1     1    Urban           14           4.8150907
+9        30.1    99    99    Rural           32           9.2343893
+10       30.9     1     1    Urban           46           1.4012486
+11       37.8    NA    NA     &lt;NA&gt;          248           5.0010328
+12       35.4     1     1    Urban           65           1.3009040
+13       38.1     1     1    Urban          242           1.3908539
+14       33.5    NA    NA     &lt;NA&gt;           75           0.5080645
+15       32.2     1     1    Urban          588           0.8671063
+16       32.4     1     1    Urban           45           2.5020514
+17       31.1    10    10    Rural         1040          35.4629173
+18       34.1     1     1    Urban          272           0.4495673
+19       37.3     1     1    Urban          480           4.4706635
+20       37.2    NA    NA     &lt;NA&gt;          584           6.0296416
+21       30.6     1     1    Urban          199           3.0883698
+22       48.2     1     1    Urban          807           7.6545091
+23       32.4    NA    NA     &lt;NA&gt;         1799           0.2635101
+24       31.4     1     1    Urban          153           0.5681632
+25       39.4    NA    NA     &lt;NA&gt;          377           1.3508718
+26       33.9     1     1    Urban           75           1.3757110
+27       35.7     1     1    Urban          770           2.2521300
+28       36.7     1     1    Urban          259           0.4174239
+29       29.1     8     8    Rural          954          23.5708065
+30       37.5     1     1    Urban         1772           0.3442441
+31       36.3    NA    NA     &lt;NA&gt;         1626           7.8889122
+32       37.2    NA    NA     &lt;NA&gt;          256           5.1180673
+33       38.4     1     1    Urban         1257           0.3708318
+34       33.4     1     1    Urban         2115           0.7136199
+35       41.9     1     1    Urban          309           1.5543160
+36       34.5     1     1    Urban          100           1.0899394
+37       37.9    NA    NA     &lt;NA&gt;         1207           0.4533554
+38       27.8     8     8    Rural          410           9.5174294
+39       37.7     1     1    Urban         1529           0.9699265
+40       30.0     1     1    Urban         1159           3.8457022
+41       34.1     1     1    Urban          475           6.1904359
+42       34.5    NA    NA     &lt;NA&gt;         1707           0.4129282
+43       26.3     1     1    Urban         1298           0.9826617
+44       36.9     1     1    Urban          692           1.2189651
+45       35.6     1     1    Urban          779           0.3002651
+46       33.9    NA    NA     &lt;NA&gt;         1175           0.2010859
+47       38.6     1     1    Urban          796           0.3306069
+48       39.1     1     1    Urban         1132           1.8633641
+49       37.4     1     1    Urban          688           1.3558592
+50       27.6    NA    NA     &lt;NA&gt;          223           1.3688306</code></pre>
+</div>
+</div>
+<p>Centering and scaling the data, we get distributions that look like this:</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="MidTermReportEDA_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   stateabbr tract_fips20 count_ntm_stops stops_per_capita density_per_sqmi
+1         DC  11001980000             162      12461.53809         5.168662
+2         CA  06059021813              29       9666.66699         1.830326
+3         CA  06037980034              21       2333.33325         3.662794
+4         CA  06075980300              45       1406.25000        19.107671
+5         MA  25025981300               7       1400.00000         1.853532
+6         FL  12086980500              35        795.45453         7.304077
+7         NV  32031980000             100        595.23810        42.226361
+8         CA  06037980033               8        571.42859         2.907526
+9         KY  21015980100              12        375.00000         3.465308
+10        CA  06073006200              16        347.82608        32.827866
+11        CA  06037980016              66        266.12903        49.589756
+12        CA  06037980008              15        230.76923        49.965254
+13        CA  06075980900              52        214.87604       173.993834
+14        CA  06037980011              16        213.33333       147.619050
+15        AL  01101000100             112        190.47620       678.117536
+16        CA  06037980014               8        177.77777        17.985242
+17        VT  50025967900             163        156.73077        29.326408
+18        NM  35049000400              36        132.35294       605.026187
+19        AZ  04013112512              57        118.75000       107.366612
+20        CA  06037980035              62        106.16438        96.854844
+21        CA  06037980024              21        105.52764        64.435288
+22        MI  26065980000              84        104.08922       105.428055
+23        DC  11001005802             159         88.38243      6827.063366
+24        CA  06075980501              13         84.96732       269.288816
+25        WA  53033023702              31         82.22812       279.079036
+26        NJ  34017006900               6         80.00000        54.517266
+27        CA  06059011714              58         75.32468       341.898553
+28        MI  26163985300              19         73.35907       620.472328
+29        MA  25019950500              66         69.18239        40.473795
+30        DC  11001010700             120         67.72009      5147.510707
+31        NV  32031003111             104         63.96064       206.112067
+32        NJ  34039980000              16         62.50000        50.018881
+33        MD  24510150500              78         62.05251      3389.676782
+34        TN  47065003100             131         61.93853      2963.762692
+35        UT  49011125600              19         61.48867       198.801268
+36        MI  26163524500               6         60.00000        91.748224
+37        CA  06067001103              72         59.65203      2662.370570
+38        MA  25019950307              24         58.53659        43.078859
+39        SC  45079003100              89         58.20798      1576.408148
+40        MD  24005408400              66         56.94564       301.375392
+41        MO  29189213102              27         56.84211        76.731269
+42        DC  11001010202              95         55.65319      4133.890950
+43        MN  27137002200              71         54.69954      1320.902247
+44        OH  39035114501              37         53.46821       567.694699
+45        AZ  04019000100              40         51.34788      2594.374329
+46        NV  32031000106              60         51.06383      5843.274961
+47        MD  24510080200              40         50.25126      2407.692976
+48        OH  39061026300              56         49.46996       607.503386
+49        MI  26163985100              34         49.41861       507.427335
+50        MN  27053980100              11         49.32735       162.912786
+   data_value ruca1 ruca2 rurality tot_pop_2020 census_tract_area20
+1        31.5    NA    NA     &lt;NA&gt;           13           2.5151575
+2        36.5     1     1    Urban            3           1.6390523
+3        35.3    NA    NA     &lt;NA&gt;            9           2.4571407
+4        37.5     1     1    Urban           32           1.6747200
+5        37.3     1     1    Urban            5           2.6975529
+6        32.4     1     1    Urban           44           6.0240331
+7        36.5     1     1    Urban          168           3.9785573
+8        36.5     1     1    Urban           14           4.8150907
+9        30.1    99    99    Rural           32           9.2343893
+10       30.9     1     1    Urban           46           1.4012486
+11       37.8    NA    NA     &lt;NA&gt;          248           5.0010328
+12       35.4     1     1    Urban           65           1.3009040
+13       38.1     1     1    Urban          242           1.3908539
+14       33.5    NA    NA     &lt;NA&gt;           75           0.5080645
+15       32.2     1     1    Urban          588           0.8671063
+16       32.4     1     1    Urban           45           2.5020514
+17       31.1    10    10    Rural         1040          35.4629173
+18       34.1     1     1    Urban          272           0.4495673
+19       37.3     1     1    Urban          480           4.4706635
+20       37.2    NA    NA     &lt;NA&gt;          584           6.0296416
+21       30.6     1     1    Urban          199           3.0883698
+22       48.2     1     1    Urban          807           7.6545091
+23       32.4    NA    NA     &lt;NA&gt;         1799           0.2635101
+24       31.4     1     1    Urban          153           0.5681632
+25       39.4    NA    NA     &lt;NA&gt;          377           1.3508718
+26       33.9     1     1    Urban           75           1.3757110
+27       35.7     1     1    Urban          770           2.2521300
+28       36.7     1     1    Urban          259           0.4174239
+29       29.1     8     8    Rural          954          23.5708065
+30       37.5     1     1    Urban         1772           0.3442441
+31       36.3    NA    NA     &lt;NA&gt;         1626           7.8889122
+32       37.2    NA    NA     &lt;NA&gt;          256           5.1180673
+33       38.4     1     1    Urban         1257           0.3708318
+34       33.4     1     1    Urban         2115           0.7136199
+35       41.9     1     1    Urban          309           1.5543160
+36       34.5     1     1    Urban          100           1.0899394
+37       37.9    NA    NA     &lt;NA&gt;         1207           0.4533554
+38       27.8     8     8    Rural          410           9.5174294
+39       37.7     1     1    Urban         1529           0.9699265
+40       30.0     1     1    Urban         1159           3.8457022
+41       34.1     1     1    Urban          475           6.1904359
+42       34.5    NA    NA     &lt;NA&gt;         1707           0.4129282
+43       26.3     1     1    Urban         1298           0.9826617
+44       36.9     1     1    Urban          692           1.2189651
+45       35.6     1     1    Urban          779           0.3002651
+46       33.9    NA    NA     &lt;NA&gt;         1175           0.2010859
+47       38.6     1     1    Urban          796           0.3306069
+48       39.1     1     1    Urban         1132           1.8633641
+49       37.4     1     1    Urban          688           1.3558592
+50       27.6    NA    NA     &lt;NA&gt;          223           1.3688306</code></pre>
+</div>
+</div>
+</section>
+<section id="correlation" class="level3">
+<h3 class="anchored" data-anchor-id="correlation">Correlation</h3>
+<p>Figure 1 below shows that feelings of social isolation among adults (named <code>data_value</code>) is most correlated with population (<code>density_per_sqmi</code>); the positive correlation indicates that the denser an area is, the higher the rate of feeling social isolation, which seems counterintuitive. Social isolation is also positively associated with the count of transit stops (<code>count_ntm_stops</code>). Lastly, social isolation is slightly negatively correlated with RUCA code (<code>ruca2</code>), where a higher prevalence of this feeling tends to be associated with a more metropolitan area.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="MidTermReportEDA_files/figure-html/corrplot-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="hypothesis-test" class="level2">
+<h2 class="anchored" data-anchor-id="hypothesis-test">Hypothesis test</h2>
+</section>
+<section id="data-dictionary" class="level2">
+<h2 class="anchored" data-anchor-id="data-dictionary">Data Dictionary</h2>
+<dl>
+<dt>Feelings of social isolation among adults</dt>
+<dd>
+<p>probability among adults who report always/usually/sometimes feeling socially isolated</p>
+</dd>
+<dd>
+<p>Variable summary: Loneliness is defined as the discrepancy between a person’s desired and actual social relationships and is sometimes considered synonymous with social isolation, although they are two distinct concepts. Loneliness is an emotional response to social isolation, while social isolation is an objective measure of the lack of social interactions and relationships. Previous studies show that social isolation and loneliness are common sources of chronic stress in adults, and are common at the end of life, affecting 1 in 4 older adults. Positive relationships and interactions with family, friends, co-workers, and community members can have a protective impact on individual health and well-being, and these relationships can also help mitigate the negative impacts of challenges that people face (e.g., living in an unsafe neighborhood, trouble affording housing or food). Past research shows that people with high levels of social isolation are at higher risk of developing chronic conditions (e.g., depression, cardiovascular disease, hypertension, cancer) and have a higher risk of mortality.</p>
+</dd>
+<dt>Lack of reliable transportation in the past 12 months among adults</dt>
+<dd>
+<p>Nearly 2% of the U.S. population delayed medical care because they did not have transportation in 2017. Lack of available, convenient, or reliable transportation can affect a person’s ability to consistently access health care services, which can lead to delays in healthcare and medication use that can subsequently impact overall health. In addition, the inability to access reliable transportation to work, schools, and grocery stores is associated with higher rates of unemployment, poverty, and chronic illness. People with lower incomes and uninsured people are more likely to experience transportation barriers. Limited public transportation infrastructure in a neighborhood leaves people without access to vehicles lacking in reliable transportation options. Offering free or reimbursed public transit or taxi costs, connecting individuals to transportation, and policies that improve the safety and accessibility of sidewalks and bike lanes can help improve transportation access.</p>
+</dd>
+<dt>Lack of social and emotional support among adults</dt>
+<dd>
+<p>Positive relationships and interactions with family, friends, co-workers, and community members can have a protective impact on individual health and well-being, and these relationships can also help mitigate the negative impacts of challenges that people face (e.g., living in an unsafe neighborhood, trouble affording housing or food). Past research shows that people with high levels of social isolation (lack of interactions with others or the wider community)&nbsp;are at higher risk of developing chronic conditions (e.g., depression, cardiovascular disease, hypertension) and have a higher risk of mortality.</p>
+</dd>
+<dt>count_ntm_stops</dt>
+<dd>
+<p>Count of transit stops reported to National Transit Map as of 1/2023</p>
+</dd>
+<dt>stops_per_capita</dt>
+<dd>
+<p>Transit stops per 1000 people</p>
+</dd>
+<dt>stops_per_sqmile</dt>
+<dd>
+<p>Transit stops per square mile</p>
+</dd>
+<dt>census_tract_area20</dt>
+<dd>
+<p>Census land area, square miles</p>
+</dd>
+<dt>RUCA1</dt>
+<dd>
+<p>Primary RUCA Code</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 22%">
+<col style="width: 77%">
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Code</strong></th>
+<th><strong>Classification description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Metropolitan area core: primary flow within an urbanized area (UA)</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Metropolitan area high commuting: primary flow 30% or more to a UA</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Metropolitan area low commuting: primary flow 10% to 30% to a UA</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Micropolitan area core: primary flow within an urban cluster of 10,000 to 49,999 (large UC)</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Micropolitan high commuting: primary flow 30% or more to a large UC</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>Micropolitan low commuting: primary flow 10% to 30% to a large UC</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>Small town core: primary flow within an urban cluster of 2,500 to 9,999 (small UC)</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>Small town high commuting: primary flow 30% or more to a small UC</td>
+</tr>
+<tr class="odd">
+<td>9</td>
+<td>Small town low commuting: primary flow 10% to 30% to a small UC</td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td>Rural areas: primary flow to a tract outside a UA or UC</td>
+</tr>
+<tr class="odd">
+<td>99</td>
+<td>Not coded: Census tract has zero population and no rural-urban identifier information</td>
+</tr>
+</tbody>
+</table>
+</dd>
+<dt>RUCA2</dt>
+<dd>
+<p>Secondary RUCA codes, 2010</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 19%">
+<col style="width: 80%">
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Code</strong></th>
+<th><strong>Classification description</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1 Metropolitan area core: primary flow within an urbanized area (UA)</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>1.0</td>
+<td>No additional code</td>
+</tr>
+<tr class="odd">
+<td>1.1</td>
+<td>Secondary flow 30% to 50% to a larger UA</td>
+</tr>
+<tr class="even">
+<td>2 Metropolitan area high commuting: primary flow 30% or more to a UA</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>2.0</td>
+<td>No additional code</td>
+</tr>
+<tr class="even">
+<td>2.1</td>
+<td>Secondary flow 30% to 50% to a larger UA</td>
+</tr>
+<tr class="odd">
+<td>3 Metropolitan area low commuting: primary flow 10% to 30% to a UA</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>3.0</td>
+<td>No additional code</td>
+</tr>
+<tr class="odd">
+<td>4 Micropolitan area core: primary flow within an urban cluster of 10,000 to 49,999 (large UC)</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>4.0</td>
+<td>No additional code</td>
+</tr>
+<tr class="odd">
+<td>4.1</td>
+<td>Secondary flow 30% to 50% to a UA</td>
+</tr>
+<tr class="even">
+<td>5 Micropolitan high commuting: primary flow 30% or more to a large UC</td>
+<td></td>
+</tr>
+<tr class="odd">
+<td>5.0</td>
+<td>No additional code</td>
+</tr>
+<tr class="even">
+<td>5.1</td>
+<td>Secondary flow 30% to 50% to a UA</td>
+</tr>
+<tr class="odd">
+<td>6 Micropolitan low commuting: primary flow 10% to 30% to a large UC</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>6.0</td>
+<td>No additional code</td>
+</tr>
+<tr class="odd">
+<td>7 Small town core: primary flow within an urban cluster of 2,500 to 9,999 (small UC)</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>7.0</td>
+<td>No additional code</td>
+</tr>
+<tr class="odd">
+<td>7.1</td>
+<td>Secondary flow 30% to 50% to a UA</td>
+</tr>
+<tr class="even">
+<td>7.2</td>
+<td>Secondary flow 30% to 50% to a large UC</td>
+</tr>
+<tr class="odd">
+<td>8 Small town high commuting: primary flow 30% or more to a small UC</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>8.0</td>
+<td>No additional code</td>
+</tr>
+<tr class="odd">
+<td>8.1</td>
+<td>Secondary flow 30% to 50% to a UA</td>
+</tr>
+<tr class="even">
+<td>8.2</td>
+<td>Secondary flow 30% to 50% to a large UC</td>
+</tr>
+<tr class="odd">
+<td>9 Small town low commuting: primary flow 10% to 30% to a small UC</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>9.0</td>
+<td>No additional code</td>
+</tr>
+<tr class="odd">
+<td>10 Rural areas: primary flow to a tract outside a UA or UC</td>
+<td></td>
+</tr>
+<tr class="even">
+<td>10.0</td>
+<td>No additional code</td>
+</tr>
+<tr class="odd">
+<td>10.1</td>
+<td>Secondary flow 30% to 50% to a UA</td>
+</tr>
+<tr class="even">
+<td>10.2</td>
+<td>Secondary flow 30% to 50% to a large UC</td>
+</tr>
+<tr class="odd">
+<td>10.3</td>
+<td>Secondary flow 30% to 50% to a small UC</td>
+</tr>
+<tr class="even">
+<td>99 Not coded: Census tract has zero population and no rural-urban identifier information</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</dd>
+</dl>
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-CDCPLACES" class="csl-entry" role="listitem">
+Brenden Smith. 2025. <span>“CDCPLACES: Access the ’CDC PLACES’ API.”</span> <a href="https://CRAN.R-project.org/package=CDCPLACES">https://CRAN.R-project.org/package=CDCPLACES</a>.
+</div>
+<div id="ref-Greenlund2022" class="csl-entry" role="listitem">
+Greenlund, Kurt J., Hua Lu, Yan Wang, Kevin A. Matthews, Jennifer M. LeClercq, Benjamin Lee, and Susan A. Carlson. 2022. <span>“PLACES: Local Data for Better Health.”</span> <em>Preventing Chronic Disease</em> 19 (June). <a href="https://doi.org/10.5888/pcd19.210459">https://doi.org/10.5888/pcd19.210459</a>.
+</div>
+<div id="ref-pan2023" class="csl-entry" role="listitem">
+Pan, Longrong, Robert Melendez, Philippa Clarke, Grace Noppert, Iris Gomez-Lopez, Megan Chenoweth, Anam Khan, Mao Li, and Lindsay Gypin. 2023. <span>“National Neighborhood Data Archive (NaNDA): Public Transit Stops by Census Tract and ZIP Code Tabulation Area, United States, 2016-2018 and 2024.”</span> ICPSR - Interuniversity Consortium for Political; Social Research. <a href="https://doi.org/10.3886/ICPSR38605.V2">https://doi.org/10.3886/ICPSR38605.V2</a>.
+</div>
+<div id="ref-paykin2022" class="csl-entry" role="listitem">
+Paykin, Susan, Moksha Menghaney, Qinyun Lin, and Marynia Kolak. 2022. <em>Spaykin/Rural-Urban-Classification: Rural, Suburban, Urban Classification for Small Area Analysis</em>. Zenodo. <a href="https://doi.org/10.5281/ZENODO.6359701">https://doi.org/10.5281/ZENODO.6359701</a>.
+</div>
+</div></section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
