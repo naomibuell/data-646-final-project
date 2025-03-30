@@ -4,7 +4,7 @@
 
 ## Introduction
 
-Social isolation is a critical public health issue that has been linked to higher rates of overall mortality and the development of chronic conditions such as depression, cardiovascular disease, hypertension, and cancer.[[1]](#_ftn1), [[2]](#_ftn2), [[3]](#_ftn3) One potential contributing factor to social isolation is limited access to public transportation, which has been identified as a significant barrier to social engagement, particularly for older adults living in rural areas or those with mobility challenges.[[4]](#_ftn4) This research examines whether the availability of public transportation influences social isolation levels. Understanding this relationship can inform policies that enhance transportation infrastructure to improve social connectivity and overall well-being.
+Social isolation is a critical public health issue that has been linked to higher rates of overall mortality and the development of chronic conditions such as depression, cardiovascular disease, hypertension, and cancer.[[1]](#_ftn1)[[2]](#_ftn2)[[3]](#_ftn3) One potential contributing factor to social isolation is limited access to public transportation, which has been identified as a significant barrier to social engagement, particularly for older adults living in rural areas or those with mobility challenges.[[4]](#_ftn4) This research examines whether the availability of public transportation influences social isolation levels. Understanding this relationship can inform policies that enhance transportation infrastructure to improve social connectivity and overall well-being.
 
 ## References
 
