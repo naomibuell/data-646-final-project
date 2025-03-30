@@ -204,18 +204,70 @@ hist_df <- df |>
          data_value) |>
   pivot_longer(cols = everything(),
                names_to = "variable",
-               values_to = "value")
+               values_to = "value") |>
+  mutate(
+    variable = recode(variable, 
+    count_ntm_stops = "NTM Stops Count", 
+    stops_per_capita = "Stops Per Capita", 
+    density_per_sqmi = "Density per Sqmi", 
+    data_value = "Lonlieness")
+    )
 
-ggplot(hist_df, aes(x = value)) +
+ggplot(hist_df, aes(x = value, y = after_stat(count) / sum(after_stat(count)))) +
   geom_histogram(
     bins = 30,
     fill = "steelblue",
     color = "black",
     alpha = 0.7
   ) +
-  facet_wrap( ~ variable, scales = "free") +
+  facet_wrap( ~ variable, scales = "free", ncol=1) +
   theme_minimal() +
-  labs(title = "Histograms of Stops Per Capita, Density Per Sqmi, and Data Value", x = "Value", y = "Count")
+  labs(x = "", y = "% of Total")
+
+df |>
+  arrange(desc(stops_per_capita)) |>
+  head(50)
+```
+
+Centering and scaling the data, we get distributions that look like this:
+
+```{r}
+get_upper_outlier_threshold <- function(data) {
+  Q3 <- quantile(data, 0.75) # Third quartile
+  IQR_value <- IQR(data) # Interquartile range
+  upper_bound <- Q3 + 1.5 * IQR_value
+  
+  return(upper_bound)
+}
+
+hist_df <- df |>
+  filter(stops_per_capita < get_upper_outlier_threshold(df$stops_per_capita)) |>
+  select(count_ntm_stops,
+         stops_per_capita,
+         density_per_sqmi,
+         data_value) |>
+  mutate(across(everything(), scale)) |>
+  pivot_longer(cols = everything(),
+               names_to = "variable",
+               values_to = "value") |>
+  mutate(
+    variable = recode(variable, 
+    count_ntm_stops = "NTM Stops Count", 
+    stops_per_capita = "Stops Per Capita", 
+    density_per_sqmi = "Density per Sqmi", 
+    data_value = "Lonlieness")
+    )
+
+ggplot(hist_df, aes(x = value, y = after_stat(count) / sum(after_stat(count)))) +
+  geom_histogram(
+    bins = 30,
+    fill = "steelblue",
+    color = "black",
+    alpha = 0.7
+  ) +
+  facet_wrap( ~ variable, scales = "free", ncol=1) +
+  theme_minimal() +
+  labs(x = "Value", y = "% of Total")
 
 df |>
   arrange(desc(stops_per_capita)) |>
@@ -229,7 +281,10 @@ Figure 1 below shows that feelings of social isolation among adults (named `data
 ```{r}
 #| label: corrplot
 
-df_num <- df |> select(-c(tract_fips20, rurality, stateabbr, ruca1))  # Drop non-numeric and duplicative variables 
+renamed_df <- df
+names(renamed_df) <- c('stateabbr','tract_fips20','Number of Stops','Stops per Capita','Population Density','Reported Isolation','ruca1','RUCA','rurality','Total Population','Census Tract Area') 
+
+df_num <- renamed_df |> select(-c(tract_fips20, rurality, stateabbr, ruca1))  # Drop non-numeric and duplicative variables 
 cor_matrix <- cor(df_num, use = "pairwise.complete.obs")  # Compute correlation matrix, not including NAs (in pairs)
 corrplot(cor_matrix,
          method = "circle",
