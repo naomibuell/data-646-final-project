@@ -1,5 +1,5 @@
 ---
-title: "Does public transportation decrease loneliness and social isolation?"
+title: "Does public transportation decrease social isolation?"
 author: "Naomi Buell and Richie Rivera"
 format: html
 bibliography: references.bib
@@ -276,13 +276,13 @@ df |>
 
 ### Correlation
 
-Figure 1 below shows that feelings of social isolation among adults (named `data_value`) is most correlated with population (`density_per_sqmi`); the positive correlation indicates that the denser an area is, the higher the rate of feeling social isolation, which seems counterintuitive. Social isolation is also positively associated with the count of transit stops (`count_ntm_stops`). Lastly, social isolation is slightly negatively correlated with RUCA code (`ruca2`), where a higher prevalence of this feeling tends to be associated with a more metropolitan area.
+Figure 1 below shows that feelings of social isolation among adults is most correlated with population; the positive correlation indicates that the denser an area is, the higher the rate of feeling social isolation, which seems counterintuitive. Social isolation is also positively associated with the count of transit stops. Lastly, social isolation is slightly negatively correlated with RUCA code, where a higher prevalence of this feeling tends to be associated with a more metropolitan area.
 
 ```{r}
 #| label: corrplot
 
 renamed_df <- df
-names(renamed_df) <- c('stateabbr','tract_fips20','Number of Stops','Stops per Capita','Population Density','Reported Isolation','ruca1','RUCA','rurality','Total Population','Census Tract Area') 
+names(renamed_df) <- c('stateabbr','tract_fips20','Number of Stops','Stops per Capita','Population Density','Feelings of social isolation','ruca1','RUCA','rurality','Total Population','Census Tract Area') 
 
 df_num <- renamed_df |> select(-c(tract_fips20, rurality, stateabbr, ruca1))  # Drop non-numeric and duplicative variables 
 cor_matrix <- cor(df_num, use = "pairwise.complete.obs")  # Compute correlation matrix, not including NAs (in pairs)
@@ -298,19 +298,9 @@ corrplot(cor_matrix,
 
 ## Data Dictionary
 
-Feelings of social isolation among adults
+Feelings of social isolation among adults (`data_value`)
 
-:   probability among adults who report always/usually/sometimes feeling socially isolated
-
-:   Variable summary: Loneliness is defined as the discrepancy between a person’s desired and actual social relationships and is sometimes considered synonymous with social isolation, although they are two distinct concepts. Loneliness is an emotional response to social isolation, while social isolation is an objective measure of the lack of social interactions and relationships. Previous studies show that social isolation and loneliness are common sources of chronic stress in adults, and are common at the end of life, affecting 1 in 4 older adults. Positive relationships and interactions with family, friends, co-workers, and community members can have a protective impact on individual health and well-being, and these relationships can also help mitigate the negative impacts of challenges that people face (e.g., living in an unsafe neighborhood, trouble affording housing or food). Past research shows that people with high levels of social isolation are at higher risk of developing chronic conditions (e.g., depression, cardiovascular disease, hypertension, cancer) and have a higher risk of mortality.
-
-Lack of reliable transportation in the past 12 months among adults
-
-:   Nearly 2% of the U.S. population delayed medical care because they did not have transportation in 2017. Lack of available, convenient, or reliable transportation can affect a person’s ability to consistently access health care services, which can lead to delays in healthcare and medication use that can subsequently impact overall health. In addition, the inability to access reliable transportation to work, schools, and grocery stores is associated with higher rates of unemployment, poverty, and chronic illness. People with lower incomes and uninsured people are more likely to experience transportation barriers. Limited public transportation infrastructure in a neighborhood leaves people without access to vehicles lacking in reliable transportation options. Offering free or reimbursed public transit or taxi costs, connecting individuals to transportation, and policies that improve the safety and accessibility of sidewalks and bike lanes can help improve transportation access.
-
-Lack of social and emotional support among adults
-
-:   Positive relationships and interactions with family, friends, co-workers, and community members can have a protective impact on individual health and well-being, and these relationships can also help mitigate the negative impacts of challenges that people face (e.g., living in an unsafe neighborhood, trouble affording housing or food). Past research shows that people with high levels of social isolation (lack of interactions with others or the wider community) are at higher risk of developing chronic conditions (e.g., depression, cardiovascular disease, hypertension) and have a higher risk of mortality.
+:   Probability among adults who report always/usually/sometimes feeling socially isolated
 
 count_ntm_stops
 
@@ -333,7 +323,7 @@ RUCA1
 :   Primary RUCA Code
 
     | **Code** | **Classification description** |
-    |----------------|--------------------------------------------------------|
+    |------------------|------------------------------------------------------|
     | 1 | Metropolitan area core: primary flow within an urbanized area (UA) |
     | 2 | Metropolitan area high commuting: primary flow 30% or more to a UA |
     | 3 | Metropolitan area low commuting: primary flow 10% to 30% to a UA |
@@ -351,7 +341,7 @@ RUCA2
 :   Secondary RUCA codes, 2010
 
     | **Code** | **Classification description** |
-    |--------------|----------------------------------------------------------|
+    |-----------------|-------------------------------------------------------|
     | 1 Metropolitan area core: primary flow within an urbanized area (UA) |  |
     | 1.0 | No additional code |
     | 1.1 | Secondary flow 30% to 50% to a larger UA |

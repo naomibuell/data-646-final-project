@@ -8,7 +8,7 @@
 
 <meta name="author" content="Naomi Buell and Richie Rivera">
 
-<title>Does public transportation decrease loneliness and social isolation?</title>
+<title>Does public transportation decrease social isolation?</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -66,7 +66,7 @@ div.csl-indent {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Does public transportation decrease loneliness and social isolation?</h1>
+<h1 class="title">Does public transportation decrease social isolation?</h1>
 </div>
 
 
@@ -857,7 +857,7 @@ div.csl-indent {
 </section>
 <section id="correlation" class="level3">
 <h3 class="anchored" data-anchor-id="correlation">Correlation</h3>
-<p>Figure 1 below shows that feelings of social isolation among adults (named <code>data_value</code>) is most correlated with population (<code>density_per_sqmi</code>); the positive correlation indicates that the denser an area is, the higher the rate of feeling social isolation, which seems counterintuitive. Social isolation is also positively associated with the count of transit stops (<code>count_ntm_stops</code>). Lastly, social isolation is slightly negatively correlated with RUCA code (<code>ruca2</code>), where a higher prevalence of this feeling tends to be associated with a more metropolitan area.</p>
+<p>Figure 1 below shows that feelings of social isolation among adults is most correlated with population; the positive correlation indicates that the denser an area is, the higher the rate of feeling social isolation, which seems counterintuitive. Social isolation is also positively associated with the count of transit stops. Lastly, social isolation is slightly negatively correlated with RUCA code, where a higher prevalence of this feeling tends to be associated with a more metropolitan area.</p>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -875,20 +875,9 @@ div.csl-indent {
 <section id="data-dictionary" class="level2">
 <h2 class="anchored" data-anchor-id="data-dictionary">Data Dictionary</h2>
 <dl>
-<dt>Feelings of social isolation among adults</dt>
+<dt>Feelings of social isolation among adults (<code>data_value</code>)</dt>
 <dd>
-<p>probability among adults who report always/usually/sometimes feeling socially isolated</p>
-</dd>
-<dd>
-<p>Variable summary: Loneliness is defined as the discrepancy between a person’s desired and actual social relationships and is sometimes considered synonymous with social isolation, although they are two distinct concepts. Loneliness is an emotional response to social isolation, while social isolation is an objective measure of the lack of social interactions and relationships. Previous studies show that social isolation and loneliness are common sources of chronic stress in adults, and are common at the end of life, affecting 1 in 4 older adults. Positive relationships and interactions with family, friends, co-workers, and community members can have a protective impact on individual health and well-being, and these relationships can also help mitigate the negative impacts of challenges that people face (e.g., living in an unsafe neighborhood, trouble affording housing or food). Past research shows that people with high levels of social isolation are at higher risk of developing chronic conditions (e.g., depression, cardiovascular disease, hypertension, cancer) and have a higher risk of mortality.</p>
-</dd>
-<dt>Lack of reliable transportation in the past 12 months among adults</dt>
-<dd>
-<p>Nearly 2% of the U.S. population delayed medical care because they did not have transportation in 2017. Lack of available, convenient, or reliable transportation can affect a person’s ability to consistently access health care services, which can lead to delays in healthcare and medication use that can subsequently impact overall health. In addition, the inability to access reliable transportation to work, schools, and grocery stores is associated with higher rates of unemployment, poverty, and chronic illness. People with lower incomes and uninsured people are more likely to experience transportation barriers. Limited public transportation infrastructure in a neighborhood leaves people without access to vehicles lacking in reliable transportation options. Offering free or reimbursed public transit or taxi costs, connecting individuals to transportation, and policies that improve the safety and accessibility of sidewalks and bike lanes can help improve transportation access.</p>
-</dd>
-<dt>Lack of social and emotional support among adults</dt>
-<dd>
-<p>Positive relationships and interactions with family, friends, co-workers, and community members can have a protective impact on individual health and well-being, and these relationships can also help mitigate the negative impacts of challenges that people face (e.g., living in an unsafe neighborhood, trouble affording housing or food). Past research shows that people with high levels of social isolation (lack of interactions with others or the wider community)&nbsp;are at higher risk of developing chronic conditions (e.g., depression, cardiovascular disease, hypertension) and have a higher risk of mortality.</p>
+<p>Probability among adults who report always/usually/sometimes feeling socially isolated</p>
 </dd>
 <dt>count_ntm_stops</dt>
 <dd>
@@ -911,8 +900,8 @@ div.csl-indent {
 <p>Primary RUCA Code</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 22%">
-<col style="width: 77%">
+<col style="width: 25%">
+<col style="width: 75%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -973,8 +962,8 @@ div.csl-indent {
 <p>Secondary RUCA codes, 2010</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 19%">
-<col style="width: 80%">
+<col style="width: 23%">
+<col style="width: 76%">
 </colgroup>
 <thead>
 <tr class="header">
