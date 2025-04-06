@@ -1,0 +1,459 @@
+---
+title: "Does public transportation decrease social isolation?"
+author: "Naomi Buell and Richie Rivera"
+format: html
+bibliography: references.bib
+echo: false
+warning: false
+---
+
+## Load data
+
+```{r}
+#| label: load packages
+#| echo: false
+#| include: false
+
+library(tidyverse)
+library(janitor)
+library(httr)
+library(jsonlite)
+library(skimr)
+library(RSocrata)
+library(CDCPLACES)
+library(readr)
+library(ggplot2)
+library(corrplot)
+```
+
+Load [PLACES: Local Data for Better Health, Census Tract Data 2024 release](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Census-Tract-D/cwsq-ngmh/about_data) using [@CDCPLACES] [@Greenlund2022]. This is 2022 data.
+
+```{r}
+#| label: get-cdc-data-with-CDCPLACES-package
+dict <- get_dictionary()
+
+cdc_places <- CDCPLACES::get_places(
+    geography = "census",
+    measure = c("ISOLATION"),
+    # "LACKTRPT", "EMOTIONSPT"), // Removing lack of transport and emotional support variables.
+    age_adjust = TRUE
+) |>
+    clean_names() |>
+    select(
+        stateabbr,
+        locationname,
+        data_value,
+        starts_with("totalpopulation")
+    ) # Consider pulling geolocation variable if mapping
+
+# Browse
+cdc_places |> head()
+```
+
+Get [Public Transit Stops by Census Tract and ZIP Code Tabulation Area, United States, 2024](https://www.icpsr.umich.edu/web/ICPSR/studies/38605/datadocumentation#) from the National Neighborhood Data Archive (NaNDA) [@pan2023].
+
+```{r}
+#| label: get-transit
+
+transit <- read_table("data/ICPSR_38605/DS0003/38605-0003-Data.tsv") |>
+    clean_names() |>
+    mutate_all(~ replace(., is.na(.), 0)) # Filling the empty with 0 since they correspond with national parks
+
+# Browse
+transit |> head()
+```
+
+Get 2010 USDA-ERS Rural Urban Commuting Area (RUCA) Code classification scheme for Census tracts [@paykin2022].
+
+```{r}
+#| label: get-RUCA
+
+ruca <- read_csv(
+    "https://raw.githubusercontent.com/spaykin/rural-urban-classification/refs/heads/main/data_final/RuralSubUrban_T.csv"
+) |>
+    clean_names() |>
+    rename(tract_fips20 = tract_fips) |>
+    mutate(rurality = rurality |> as_factor())
+
+ruca |> head()
+```
+
+Merge data.
+
+```{r}
+#| label: merge
+
+data <- cdc_places |>
+    rename(tract_fips20 = locationname) |>
+    full_join(transit) |>
+    full_join(ruca)
+
+data |> head()
+data |> skim()
+```
+
+## Exploratory data analysis
+
+### Missingness
+
+Investigate missings in merged data.
+
+```{r}
+#| label: browse-merged-data
+
+nulls_df <- data |>
+    select(stateabbr, count_ntm_stops) |>
+    group_by(stateabbr) |>
+    summarise(
+        Null_Count = sum(is.na(count_ntm_stops)),
+        Non_Null_Count = sum(!is.na(count_ntm_stops))
+    ) |>
+    arrange(desc(Null_Count))
+
+print(nulls_df, n = 100)
+```
+
+Investigate states with missing data.
+
+```{r}
+# Complete list of state abbreviations
+all_states <- state.abb
+
+# Unique, non-missing state abbreviations in your data
+present_states <- unique(nulls_df$stateabbr)
+
+# Determine missing states
+missing_states <- setdiff(all_states, present_states)
+
+# Display missing states
+print(missing_states)
+```
+
+Filtering missing information (dropped observations are documented in our paper). CT is omitted because there is no data on it from the transit stop dataset.
+
+```{r}
+#| label: remove-missings
+
+df <- data |>
+    mutate(density_per_sqmi = tot_pop_2020 / census_tract_area20) |> # creating a population land density measure
+    filter(stateabbr != "CT") |> # Removing CT
+    filter(!is.na(stateabbr)) |> # Removing states where there is no data
+    select(
+        stateabbr,
+        tract_fips20,
+        count_ntm_stops,
+        stops_per_capita,
+        density_per_sqmi,
+        data_value,
+        ruca1,
+        ruca2,
+        rurality,
+        tot_pop_2020,
+        census_tract_area20
+    ) # Selecting our columns of interest
+
+head(df)
+
+# 11001980000 - NATIONAL MALL   - has a pop of 17
+# 36061014300 - CENTRAL PARK    - has a pop of 1
+```
+
+### Distribution
+
+Viewing the distribution of our modeling variables.
+
+```{r}
+
+hist_df <- df |>
+    select(
+        count_ntm_stops,
+        stops_per_capita,
+        density_per_sqmi,
+        data_value
+    ) |>
+    pivot_longer(
+        cols = everything(),
+        names_to = "variable",
+        values_to = "value"
+    )
+
+ggplot(hist_df, aes(x = value)) +
+    geom_histogram(
+        bins = 30,
+        fill = "steelblue",
+        color = "black",
+        alpha = 0.7
+    ) +
+    facet_wrap(~variable, scales = "free") +
+    theme_minimal() +
+    labs(
+        title = "Histograms of Stops Per Capita, Density Per Sqmi, and Data Value",
+        x = "Value",
+        y = "Count"
+    )
+
+df |>
+    arrange(desc(stops_per_capita)) |>
+    head(50)
+```
+
+The field `stops_per_capita` has high outliers (e.g., 12k stops per capita observation when mean value is 2). We remove outliers defined as `Q3 + 1.5 * IQR`.
+
+```{r}
+get_upper_outlier_threshold <- function(data) {
+    Q3 <- quantile(data, 0.75) # Third quartile
+    IQR_value <- IQR(data) # Interquartile range
+    upper_bound <- Q3 + 1.5 * IQR_value
+
+    return(upper_bound)
+}
+
+hist_df <- df |>
+    filter(
+        stops_per_capita < get_upper_outlier_threshold(df$stops_per_capita)
+    ) |>
+    select(
+        count_ntm_stops,
+        stops_per_capita,
+        density_per_sqmi,
+        data_value
+    ) |>
+    pivot_longer(
+        cols = everything(),
+        names_to = "variable",
+        values_to = "value"
+    ) |>
+    mutate(
+        variable = recode(
+            variable,
+            count_ntm_stops = "NTM Stops Count",
+            stops_per_capita = "Stops Per Capita",
+            density_per_sqmi = "Density per Sqmi",
+            data_value = "Lonlieness"
+        )
+    )
+
+ggplot(
+    hist_df,
+    aes(x = value, y = after_stat(count) / sum(after_stat(count)))
+) +
+    geom_histogram(
+        bins = 30,
+        fill = "steelblue",
+        color = "black",
+        alpha = 0.7
+    ) +
+    facet_wrap(~variable, scales = "free", ncol = 1) +
+    theme_minimal() +
+    labs(x = "", y = "% of Total")
+
+df |>
+    arrange(desc(stops_per_capita)) |>
+    head(50)
+```
+
+Centering and scaling the data, we get distributions that look like this:
+
+```{r}
+get_upper_outlier_threshold <- function(data) {
+    Q3 <- quantile(data, 0.75) # Third quartile
+    IQR_value <- IQR(data) # Interquartile range
+    upper_bound <- Q3 + 1.5 * IQR_value
+
+    return(upper_bound)
+}
+
+hist_df <- df |>
+    filter(
+        stops_per_capita < get_upper_outlier_threshold(df$stops_per_capita)
+    ) |>
+    select(
+        count_ntm_stops,
+        stops_per_capita,
+        density_per_sqmi,
+        data_value
+    ) |>
+    mutate(across(everything(), scale)) |>
+    pivot_longer(
+        cols = everything(),
+        names_to = "variable",
+        values_to = "value"
+    ) |>
+    mutate(
+        variable = recode(
+            variable,
+            count_ntm_stops = "NTM Stops Count",
+            stops_per_capita = "Stops Per Capita",
+            density_per_sqmi = "Density per Sqmi",
+            data_value = "Lonlieness"
+        )
+    )
+
+ggplot(
+    hist_df,
+    aes(x = value, y = after_stat(count) / sum(after_stat(count)))
+) +
+    geom_histogram(
+        bins = 30,
+        fill = "steelblue",
+        color = "black",
+        alpha = 0.7
+    ) +
+    facet_wrap(~variable, scales = "free", ncol = 1) +
+    theme_minimal() +
+    labs(x = "Value", y = "% of Total")
+
+df |>
+    arrange(desc(stops_per_capita)) |>
+    head(50)
+```
+
+### Correlation
+
+Figure 1 below shows that feelings of social isolation among adults is most correlated with population; the positive correlation indicates that the denser an area is, the higher the rate of feeling social isolation, which seems counterintuitive. Social isolation is also positively associated with the count of transit stops. Lastly, social isolation is slightly negatively correlated with RUCA code, where a higher prevalence of this feeling tends to be associated with a more metropolitan area.
+
+```{r}
+#| label: corrplot
+
+renamed_df <- df
+names(renamed_df) <- c(
+    "stateabbr",
+    "tract_fips20",
+    "Number of Stops",
+    "Stops per Capita",
+    "Population Density",
+    "Feelings of Social Isolation",
+    "ruca1",
+    "RUCA",
+    "rurality",
+    "Total Population",
+    "Census Tract Area"
+)
+
+df_num <- renamed_df |> select(-c(tract_fips20, rurality, stateabbr, ruca1)) # Drop non-numeric and duplicative variables
+cor_matrix <- cor(df_num, use = "pairwise.complete.obs") # Compute correlation matrix, not including NAs (in pairs)
+corrplot(
+    cor_matrix,
+    method = "circle",
+    type = "upper",
+    tl.srt = 20,
+    # diag = F,
+    order = "hclust"
+)
+```
+
+## Analysis
+
+```{r}
+#| label: hypothesis-test
+#| echo: false
+#| warning: false
+
+# Fit a linear model
+lm_model <- lm(
+    data_value ~
+        count_ntm_stops + census_tract_area20 + tot_pop_2020 + rurality,
+    data = df
+)
+summary(lm_model)
+```
+
+```{r}
+
+lm_model <- lm(
+    data_value ~ stops_per_capita + density_per_sqmi + ruca1,
+    data = df
+)
+summary(lm_model)
+```
+
+The overall model is statistically significant (F-statistic p-value \< 2.2e-16). All variables are highly significant (p \< 0.001, indicated by \*\*\*):
+
+-   stops_per_capita: For each unit increase, the data value increases by 0.001377
+
+-   density_per_sqmi: For each unit increase, the data value increases by 0.0001861
+
+-   ruca1: For each unit increase, the data value decreases by 0.04216
+
+R-squared: 0.09819 (≈ 9.82%) This means the model explains about 9.82% of the variance in the data This is a relatively low R-squared, suggesting other important factors might not be included. The low R-squared suggests this model might not be the best fit for prediction.
+
+### Hypothesis testing
+
+## Data Dictionary
+
+Feelings of social isolation among adults (`data_value`)
+
+:   Probability among adults who report always/usually/sometimes feeling socially isolated
+
+count_ntm_stops
+
+:   Count of transit stops reported to National Transit Map as of 1/2023
+
+stops_per_capita
+
+:   Transit stops per 1000 people
+
+stops_per_sqmile
+
+:   Transit stops per square mile
+
+census_tract_area20
+
+:   Census land area, square miles
+
+RUCA1
+
+:   Primary RUCA Code
+
+    | **Code** | **Classification description** |
+    |--------------------|----------------------------------------------------|
+    | 1 | Metropolitan area core: primary flow within an urbanized area (UA) |
+    | 2 | Metropolitan area high commuting: primary flow 30% or more to a UA |
+    | 3 | Metropolitan area low commuting: primary flow 10% to 30% to a UA |
+    | 4 | Micropolitan area core: primary flow within an urban cluster of 10,000 to 49,999 (large UC) |
+    | 5 | Micropolitan high commuting: primary flow 30% or more to a large UC |
+    | 6 | Micropolitan low commuting: primary flow 10% to 30% to a large UC |
+    | 7 | Small town core: primary flow within an urban cluster of 2,500 to 9,999 (small UC) |
+    | 8 | Small town high commuting: primary flow 30% or more to a small UC |
+    | 9 | Small town low commuting: primary flow 10% to 30% to a small UC |
+    | 10 | Rural areas: primary flow to a tract outside a UA or UC |
+    | 99 | Not coded: Census tract has zero population and no rural-urban identifier information |
+
+RUCA2
+
+:   Secondary RUCA codes, 2010
+
+    | **Code** | **Classification description** |
+    |-------------------|-----------------------------------------------------|
+    | 1 Metropolitan area core: primary flow within an urbanized area (UA) |  |
+    | 1.0 | No additional code |
+    | 1.1 | Secondary flow 30% to 50% to a larger UA |
+    | 2 Metropolitan area high commuting: primary flow 30% or more to a UA |  |
+    | 2.0 | No additional code |
+    | 2.1 | Secondary flow 30% to 50% to a larger UA |
+    | 3 Metropolitan area low commuting: primary flow 10% to 30% to a UA |  |
+    | 3.0 | No additional code |
+    | 4 Micropolitan area core: primary flow within an urban cluster of 10,000 to 49,999 (large UC) |  |
+    | 4.0 | No additional code |
+    | 4.1 | Secondary flow 30% to 50% to a UA |
+    | 5 Micropolitan high commuting: primary flow 30% or more to a large UC |  |
+    | 5.0 | No additional code |
+    | 5.1 | Secondary flow 30% to 50% to a UA |
+    | 6 Micropolitan low commuting: primary flow 10% to 30% to a large UC |  |
+    | 6.0 | No additional code |
+    | 7 Small town core: primary flow within an urban cluster of 2,500 to 9,999 (small UC) |  |
+    | 7.0 | No additional code |
+    | 7.1 | Secondary flow 30% to 50% to a UA |
+    | 7.2 | Secondary flow 30% to 50% to a large UC |
+    | 8 Small town high commuting: primary flow 30% or more to a small UC |  |
+    | 8.0 | No additional code |
+    | 8.1 | Secondary flow 30% to 50% to a UA |
+    | 8.2 | Secondary flow 30% to 50% to a large UC |
+    | 9 Small town low commuting: primary flow 10% to 30% to a small UC |  |
+    | 9.0 | No additional code |
+    | 10 Rural areas: primary flow to a tract outside a UA or UC |  |
+    | 10.0 | No additional code |
+    | 10.1 | Secondary flow 30% to 50% to a UA |
+    | 10.2 | Secondary flow 30% to 50% to a large UC |
+    | 10.3 | Secondary flow 30% to 50% to a small UC |
+    | 99 Not coded: Census tract has zero population and no rural-urban identifier information |  |
