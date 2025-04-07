@@ -72,13 +72,12 @@ ruca <- read_csv(
     "https://raw.githubusercontent.com/spaykin/rural-urban-classification/refs/heads/main/data_final/RuralSubUrban_T.csv"
 ) |>
     clean_names() |>
-    rename(tract_fips20 = tract_fips) |>
-    mutate(rurality = rurality |> as_factor())
+    rename(tract_fips20 = tract_fips)
 
 ruca |> head()
 ```
 
-Merge data.
+Merge data. Since there are two columns for total population, we will use the one that is more complete, `totalpopulation`, from the CDC PLACES data. We will also rename the columns for clarity and consistency and generate a new variable, `density_per_sqmi`, which is the total population divided by the area in square miles.
 
 ```{r}
 #| label: merge-rename
@@ -88,7 +87,6 @@ data <- cdc_places |>
     full_join(transit) |>
     full_join(ruca) |>
     rename(
-        tot_pop_2022 = totalpopulation, # Total population from CDC PLACES
         area_sq_miles = census_tract_area20, # Area in square miles from transit data
         fips = tract_fips20, # FIPS code for census tract
         isolation = data_value, # Renaming for clarity
@@ -98,12 +96,17 @@ data <- cdc_places |>
     mutate(
         state_abbr = state_abbr |> as.factor(), # Ensure state abbreviation is a factor
         fips = fips |> as.factor(), # Ensure FIPS code is a factor
-        tot_pop_2022 = as.numeric(tot_pop_2022), # Convert total population to numeric
+        totalpopulation = as.numeric(totalpopulation), # Convert total population to numeric
         rurality = factor(rurality, levels = c("Urban", "Suburban", "Rural")), # Reorder rurality factor levels
-        ruca = factor(ruca) # Order RUCA codes numerically
+        ruca = case_when(
+            ruca == 99 ~ NA, # Replace RUCA code 99 (not coded) with NA
+            TRUE ~ ruca
+        ) |>
+            factor(),
+        density_per_sqmi = totalpopulation / area_sq_miles # creating a population land density measure from  population size (CDC PLACES) and area in square miles (transit data)
     ) |>
     filter(!is.na(isolation)) |> # Remove rows with missing isolation data
-    select(-ruca1) # Remove unnecessary columns
+    select(-c(ruca1, tot_pop_2020)) # Remove unnecessary columns
 
 # Preview
 data |> head()
@@ -154,27 +157,21 @@ skim(df_nonmiss) # Skim the non-missing dataframe
 # 36061014300 - CENTRAL PARK    - has a pop of 1
 ```
 
-Now there are `r nrow(df_nonmiss)` observations remaining after removing Connecticut. We will use this non-missing data for our analysis.
-
-We also create a population density variable, `density_per_sqmi`, which is the total population divided by the area in square miles. This will help us understand how population density relates to feelings of social isolation.
-
-```{r}
-        density_per_sqmi = tot_pop_2022 / area_sq_miles, # creating a population land density measure from latest population size (CDC PLACES, 2022) and area in square miles (transit data)
-
-```
+Now there are `r nrow(df_nonmiss)` observations remaining after removing Connecticut, and there are no missing isolation or transit data. We note a few census tracts with very low populations (e.g., 1 person in central park or 17 people in the national mall) that may not be representative of the general population.
 
 ### Distribution
 
 Viewing the distribution of our modeling variables.
 
 ```{r}
-
-hist_df <- df |>
+#| label: histograms
+#| warning: false
+df_hist <- df_nonmiss |>
     select(
         count_ntm_stops,
         stops_per_capita,
         density_per_sqmi,
-        data_value
+        isolation
     ) |>
     pivot_longer(
         cols = everything(),
@@ -182,46 +179,49 @@ hist_df <- df |>
         values_to = "value"
     )
 
-ggplot(hist_df, aes(x = value)) +
+ggplot(df_hist, aes(x = value)) +
     geom_histogram(
-        bins = 30,
         fill = "steelblue",
-        color = "black",
-        alpha = 0.7
+        color = "black"
     ) +
     facet_wrap(~variable, scales = "free") +
-    theme_minimal() +
+    theme_classic() +
     labs(
-        title = "Histograms of Stops Per Capita, Density Per Sqmi, and Data Value",
+        title = "Distribution of Transit Stops, Population Density, and Isolation Measures",
+        subtitle = "Transit and density measures are right-skewed. Isolation is normally distributed.",
+        caption = "Source: CDC PLACES and National Neighborhood Data Archive (NaNDA)",
         x = "Value",
         y = "Count"
-    )
+    ) +
+    scale_x_continuous(labels = scales::comma) +
+    scale_y_continuous(labels = scales::comma)
 
-df |>
-    arrange(desc(stops_per_capita)) |>
-    head(50)
+df_nonmiss |>
+    select(stops_per_capita, density_per_sqmi, count_ntm_stops) |>
+    skim()
 ```
 
-The field `stops_per_capita` has high outliers (e.g., 12k stops per capita observation when mean value is 2). We remove outliers defined as `Q3 + 1.5 * IQR`.
+The column `stops_per_capita` has high outliers (e.g., 12k stops per capita observation when mean value is 2). We plot the data with outliers (defined as `Q3 + 1.5 * IQR`) removed.**
 
 ```{r}
+#| label: remove-outliers
 get_upper_outlier_threshold <- function(data) {
     Q3 <- quantile(data, 0.75) # Third quartile
     IQR_value <- IQR(data) # Interquartile range
     upper_bound <- Q3 + 1.5 * IQR_value
-
     return(upper_bound)
 }
 
-hist_df <- df |>
+df_outliers <- df_nonmiss |>
     filter(
-        stops_per_capita < get_upper_outlier_threshold(df$stops_per_capita)
+        stops_per_capita <
+            get_upper_outlier_threshold(df_nonmiss$stops_per_capita)
     ) |>
     select(
         count_ntm_stops,
         stops_per_capita,
         density_per_sqmi,
-        data_value
+        isolation
     ) |>
     pivot_longer(
         cols = everything(),
@@ -231,52 +231,41 @@ hist_df <- df |>
     mutate(
         variable = recode(
             variable,
-            count_ntm_stops = "NTM Stops Count",
+            count_ntm_stops = "Number of Stops",
             stops_per_capita = "Stops Per Capita",
-            density_per_sqmi = "Density per Sqmi",
-            data_value = "Lonlieness"
+            density_per_sqmi = "Population Density per Square Mile",
+            isolation = "Isolation"
         )
     )
 
 ggplot(
-    hist_df,
-    aes(x = value, y = after_stat(count) / sum(after_stat(count)))
+    df_outliers,
+    aes(x = value, y = after_stat(count) / sum(after_stat(count)) * 100)
 ) +
     geom_histogram(
-        bins = 30,
         fill = "steelblue",
-        color = "black",
-        alpha = 0.7
+        color = "black"
     ) +
     facet_wrap(~variable, scales = "free", ncol = 1) +
-    theme_minimal() +
-    labs(x = "", y = "% of Total")
-
-df |>
-    arrange(desc(stops_per_capita)) |>
-    head(50)
+    theme_classic() +
+    labs(x = "Value", y = "% of Total") +
+    scale_x_continuous(labels = scales::comma)
 ```
 
-Centering and scaling the data, we get distributions that look like this:
+We also investigate distributions of the centered and scaled data.
 
 ```{r}
-get_upper_outlier_threshold <- function(data) {
-    Q3 <- quantile(data, 0.75) # Third quartile
-    IQR_value <- IQR(data) # Interquartile range
-    upper_bound <- Q3 + 1.5 * IQR_value
-
-    return(upper_bound)
-}
-
-hist_df <- df |>
+#| label: histograms-scaled
+df_hist <- df_nonmiss |>
     filter(
-        stops_per_capita < get_upper_outlier_threshold(df$stops_per_capita)
+        stops_per_capita <
+            get_upper_outlier_threshold(df_nonmiss$stops_per_capita)
     ) |>
     select(
         count_ntm_stops,
         stops_per_capita,
         density_per_sqmi,
-        data_value
+        isolation
     ) |>
     mutate(across(everything(), scale)) |>
     pivot_longer(
@@ -287,67 +276,63 @@ hist_df <- df |>
     mutate(
         variable = recode(
             variable,
-            count_ntm_stops = "NTM Stops Count",
+            count_ntm_stops = "Number of Stops",
             stops_per_capita = "Stops Per Capita",
-            density_per_sqmi = "Density per Sqmi",
-            data_value = "Lonlieness"
+            density_per_sqmi = "Density per Square Mile",
+            isolation = "Isolation"
         )
     )
 
 ggplot(
-    hist_df,
-    aes(x = value, y = after_stat(count) / sum(after_stat(count)))
+    df_hist,
+    aes(x = value, y = after_stat(count) / sum(after_stat(count)) * 100)
 ) +
     geom_histogram(
-        bins = 30,
         fill = "steelblue",
-        color = "black",
-        alpha = 0.7
+        color = "black"
     ) +
     facet_wrap(~variable, scales = "free", ncol = 1) +
-    theme_minimal() +
+    theme_classic() +
     labs(x = "Value", y = "% of Total")
-
-df |>
-    arrange(desc(stops_per_capita)) |>
-    head(50)
 ```
 
 ### Correlation
 
-Figure 1 below shows that feelings of social isolation among adults is most correlated with population; the positive correlation indicates that the denser an area is, the higher the rate of feeling social isolation, which seems counterintuitive. Social isolation is also positively associated with the count of transit stops. Lastly, social isolation is slightly negatively correlated with RUCA code, where a higher prevalence of this feeling tends to be associated with a more metropolitan area.
+The figure below shows that feelings of social isolation among adults is most correlated with population density, number of stops, stops per square mile, and rurality. Positive correlation indicates that the denser an area is, the higher the rate of feeling social isolation, which is counterintuitive to our hypothesis. Social isolation is also positively associated with the count of transit stops (total count in census tract and adjusted per square mile)--also counterintuitive. Social isolation is slightly negatively correlated with rurality as measured by RUCA code, where a higher prevalence of this feeling tends to be associated with a more urban, less rural area, which is also inconsistent with our expectation. 
 
 ```{r}
 #| label: corrplot
 
-renamed_df <- df
-names(renamed_df) <- c(
-    "state_abbr",
-    "fips",
-    "Number of Stops",
-    "Stops per Capita",
-    "Population Density",
-    "Feelings of Social Isolation",
-    "ruca1",
-    "RUCA",
-    "rurality",
-    "Total Population",
-    "Census Tract Area"
-)
+renamed_df <- df_nonmiss |>
+    mutate("Rurality (RUCA code)" = as.numeric(ruca)) |>
+    rename(
+        "Number of Stops" = count_ntm_stops,
+        "Stops per 1k Capita" = stops_per_capita,
+        "Stops per Square Mile" = stops_per_sqmile,
+        "Population Density" = density_per_sqmi,
+        "Feelings of Social Isolation" = isolation,
+        "RUCA" = ruca,
+        "Census Tract Area (Square Miles)" = area_sq_miles,
+        "Total Population" = totalpopulation
+    )
 
-df_num <- renamed_df |> select(-c(fips, rurality, state_abbr, ruca1)) # Drop non-numeric and duplicative variables
-cor_matrix <- cor(df_num, use = "pairwise.complete.obs") # Compute correlation matrix, not including NAs (in pairs)
+cor_matrix <- renamed_df |>
+    select_if(is.numeric) |>
+    cor(use = "pairwise.complete.obs") # Compute correlation matrix, not including NAs (in pairs)
+
 corrplot(
     cor_matrix,
     method = "circle",
     type = "upper",
     tl.srt = 20,
-    # diag = F,
+    # diag = FALSE,
     order = "hclust"
 )
 ```
 
 ## Analysis
+
+First, we will fit a linear model to the data. 
 
 ```{r}
 #| label: hypothesis-test
@@ -356,8 +341,7 @@ corrplot(
 
 # Fit a linear model
 lm_model <- lm(
-    data_value ~
-        count_ntm_stops + census_tract_area20 + tot_pop_2020 + rurality,
+    isolation ~ count_ntm_stops + census_tract_area20 + tot_pop_2020 + rurality,
     data = df
 )
 summary(lm_model)
@@ -366,7 +350,7 @@ summary(lm_model)
 ```{r}
 
 lm_model <- lm(
-    data_value ~ stops_per_capita + density_per_sqmi + ruca1,
+    isolation ~ stops_per_capita + density_per_sqmi + ruca1,
     data = df
 )
 summary(lm_model)
@@ -382,51 +366,41 @@ The overall model is statistically significant (F-statistic p-value \< 2.2e-16).
 
 R-squared: 0.09819 (≈ 9.82%) This means the model explains about 9.82% of the variance in the data This is a relatively low R-squared, suggesting other important factors might not be included. The low R-squared suggests this model might not be the best fit for prediction.
 
-### Hypothesis testing
+Next, we try bucketing the data by RUCA code. We will use `rurality` that is a factor with three levels: urban, suburban, and rural.
+
+```{r}
+#| label: lm-rurality
+```
 
 ## Data Dictionary
 
-Feelings of social isolation among adults (`isolation`)
+`isolation`
 
-:   Probability among adults who report always/usually/sometimes feeling socially isolated
+:   Probability among adults who report always/usually/sometimes feeling socially isolated. Source: CDC PLACES.
 
-count_ntm_stops
+`totalpopulation`
 
-:   Count of transit stops reported to National Transit Map as of 1/2023
+:   Total population of Census 2020. Source: CDC PLACES.
 
-stops_per_capita
+`count_ntm_stops`
 
-:   Transit stops per 1000 people
+:   Count of transit stops reported to National Transit Map as of 1/2023. Source: NaNDA.
 
-stops_per_sqmile
+`stops_per_capita`
 
-:   Transit stops per square mile
+:   Transit stops per 1000 people. Source: NaNDA.
 
-census_tract_area20
+`stops_per_sqmile`
 
-:   Census land area, square miles
+:   Transit stops per square mile. Source: NaNDA.
 
-RUCA1
+`area_sq_miles`
 
-:   Primary RUCA Code
+:   Census land area, square miles. Source: NaNDA.
 
-    | **Code** | **Classification description** |
-    |--------------------|----------------------------------------------------|
-    | 1 | Metropolitan area core: primary flow within an urbanized area (UA) |
-    | 2 | Metropolitan area high commuting: primary flow 30% or more to a UA |
-    | 3 | Metropolitan area low commuting: primary flow 10% to 30% to a UA |
-    | 4 | Micropolitan area core: primary flow within an urban cluster of 10,000 to 49,999 (large UC) |
-    | 5 | Micropolitan high commuting: primary flow 30% or more to a large UC |
-    | 6 | Micropolitan low commuting: primary flow 10% to 30% to a large UC |
-    | 7 | Small town core: primary flow within an urban cluster of 2,500 to 9,999 (small UC) |
-    | 8 | Small town high commuting: primary flow 30% or more to a small UC |
-    | 9 | Small town low commuting: primary flow 10% to 30% to a small UC |
-    | 10 | Rural areas: primary flow to a tract outside a UA or UC |
-    | 99 | Not coded: Census tract has zero population and no rural-urban identifier information |
+`ruca`
 
-RUCA2
-
-:   Secondary RUCA codes, 2010
+:   Secondary RUCA codes, 2010. Source: 2010 USDA-ERS.
 
     | **Code** | **Classification description** |
     |-------------------|-----------------------------------------------------|
