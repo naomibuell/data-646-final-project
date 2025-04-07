@@ -81,81 +81,86 @@ ruca |> head()
 Merge data.
 
 ```{r}
-#| label: merge
+#| label: merge-rename
 
 data <- cdc_places |>
     rename(tract_fips20 = locationname) |>
     full_join(transit) |>
-    full_join(ruca)
+    full_join(ruca) |>
+    rename(
+        tot_pop_2022 = totalpopulation, # Total population from CDC PLACES
+        area_sq_miles = census_tract_area20, # Area in square miles from transit data
+        fips = tract_fips20, # FIPS code for census tract
+        isolation = data_value, # Renaming for clarity
+        ruca = ruca2, # using RUCA code 2 only
+        state_abbr = stateabbr, # Renaming for consistency
+    ) |>
+    mutate(
+        state_abbr = state_abbr |> as.factor(), # Ensure state abbreviation is a factor
+        fips = fips |> as.factor(), # Ensure FIPS code is a factor
+        tot_pop_2022 = as.numeric(tot_pop_2022), # Convert total population to numeric
+        rurality = factor(rurality, levels = c("Urban", "Suburban", "Rural")), # Reorder rurality factor levels
+        ruca = factor(ruca) # Order RUCA codes numerically
+    ) |>
+    filter(!is.na(isolation)) |> # Remove rows with missing isolation data
+    select(-ruca1) # Remove unnecessary columns
 
+# Preview
 data |> head()
-data |> skim()
 ```
 
-## Exploratory data analysis
+## Exploratory data analysis and data preparation
 
 ### Missingness
 
-Investigate missings in merged data.
-
 ```{r}
-#| label: browse-merged-data
+#| label: skim
+data |> skim()
 
-nulls_df <- data |>
-    select(stateabbr, count_ntm_stops) |>
-    group_by(stateabbr) |>
-    summarise(
-        Null_Count = sum(is.na(count_ntm_stops)),
-        Non_Null_Count = sum(!is.na(count_ntm_stops))
-    ) |>
-    arrange(desc(Null_Count))
-
-print(nulls_df, n = 100)
+perc_missing_transit <- sum(is.na(data$count_ntm_stops)) /
+    nrow(data) *
+    100 |> round()
+perc_missing_ruca <- sum(is.na(data$ruca)) / nrow(data) * 100 |> round()
 ```
 
-Investigate states with missing data.
+After filtering raw data for non-missing observations of our dependent variable, feelings of social isolation (`isolation`), we have `r nrow(data)` observations. County FIPs and state columns are 100% complete. A small number of counties in the data have missing transit data (`r perc_missing_transit` % missing) and some counties are not categorized into urban/suburban/rural categories (`r perc_missing_ruca` % missing).
 
 ```{r}
-# Complete list of state abbreviations
-all_states <- state.abb
+#| label: perc-missing-by-state
 
-# Unique, non-missing state abbreviations in your data
-present_states <- unique(nulls_df$stateabbr)
+data |>
+    select(state_abbr, count_ntm_stops) |>
+    group_by(state_abbr) |>
+    skim()
 
-# Determine missing states
-missing_states <- setdiff(all_states, present_states)
-
-# Display missing states
-print(missing_states)
+all_states <- state.abb # Complete list of state abbreviations
+present_states <- unique(data$state_abbr) # Unique, non-missing state abbreviations in your data
+missing_states <- setdiff(all_states, present_states) # Identify missing states
 ```
 
-Filtering missing information (dropped observations are documented in our paper). CT is omitted because there is no data on it from the transit stop dataset.
+Note that all counties in Connecticut (CT) have missing transit data, which is why we will remove it from our analysis. The state abbreviation "CT" has `r sum(data$state_abbr == "CT")` rows with missing transit data. The following states are completely missing for the dataset (no CDC PLACES isolation data available): `r paste(missing_states, collapse = ", ")`.
+
+Revising data by filteringing out missing information (dropped observations are documented in our paper).
 
 ```{r}
 #| label: remove-missings
 
-df <- data |>
-    mutate(density_per_sqmi = tot_pop_2020 / census_tract_area20) |> # creating a population land density measure
-    filter(stateabbr != "CT") |> # Removing CT
-    filter(!is.na(stateabbr)) |> # Removing states where there is no data
-    select(
-        stateabbr,
-        tract_fips20,
-        count_ntm_stops,
-        stops_per_capita,
-        density_per_sqmi,
-        data_value,
-        ruca1,
-        ruca2,
-        rurality,
-        tot_pop_2020,
-        census_tract_area20
-    ) # Selecting our columns of interest
+df_nonmiss <- data |>
+    filter(state_abbr != "CT") # Removing CT (all missing)
 
-head(df)
+skim(df_nonmiss) # Skim the non-missing dataframe
 
 # 11001980000 - NATIONAL MALL   - has a pop of 17
 # 36061014300 - CENTRAL PARK    - has a pop of 1
+```
+
+Now there are `r nrow(df_nonmiss)` observations remaining after removing Connecticut. We will use this non-missing data for our analysis.
+
+We also create a population density variable, `density_per_sqmi`, which is the total population divided by the area in square miles. This will help us understand how population density relates to feelings of social isolation.
+
+```{r}
+        density_per_sqmi = tot_pop_2022 / area_sq_miles, # creating a population land density measure from latest population size (CDC PLACES, 2022) and area in square miles (transit data)
+
 ```
 
 ### Distribution
@@ -317,8 +322,8 @@ Figure 1 below shows that feelings of social isolation among adults is most corr
 
 renamed_df <- df
 names(renamed_df) <- c(
-    "stateabbr",
-    "tract_fips20",
+    "state_abbr",
+    "fips",
     "Number of Stops",
     "Stops per Capita",
     "Population Density",
@@ -330,7 +335,7 @@ names(renamed_df) <- c(
     "Census Tract Area"
 )
 
-df_num <- renamed_df |> select(-c(tract_fips20, rurality, stateabbr, ruca1)) # Drop non-numeric and duplicative variables
+df_num <- renamed_df |> select(-c(fips, rurality, state_abbr, ruca1)) # Drop non-numeric and duplicative variables
 cor_matrix <- cor(df_num, use = "pairwise.complete.obs") # Compute correlation matrix, not including NAs (in pairs)
 corrplot(
     cor_matrix,
@@ -381,7 +386,7 @@ R-squared: 0.09819 (≈ 9.82%) This means the model explains about 9.82% of the 
 
 ## Data Dictionary
 
-Feelings of social isolation among adults (`data_value`)
+Feelings of social isolation among adults (`isolation`)
 
 :   Probability among adults who report always/usually/sometimes feeling socially isolated
 
