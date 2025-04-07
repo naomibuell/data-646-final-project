@@ -341,17 +341,8 @@ First, we will fit a linear model to the data.
 
 # Fit a linear model
 lm_model <- lm(
-    isolation ~ count_ntm_stops + census_tract_area20 + tot_pop_2020 + rurality,
-    data = df
-)
-summary(lm_model)
-```
-
-```{r}
-
-lm_model <- lm(
-    isolation ~ stops_per_capita + density_per_sqmi + ruca1,
-    data = df
+    isolation ~ count_ntm_stops + area_sq_miles + totalpopulation + rurality,
+    data = df_nonmiss
 )
 summary(lm_model)
 ```
