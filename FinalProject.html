@@ -132,6 +132,20 @@ div.csl-indent {
 6 01001020600      1     1 Urban   </code></pre>
 </div>
 </div>
+<p>Get age by census tract from the <a href="https://www2.census.gov/programs-surveys/decennial/2020/data/demographic-and-housing-characteristics-file/age-group-visualization/tract-agegroup-2020.csv">2020 Census</a> <span class="citation" data-cites="census2023">(<a href="#ref-census2023" role="doc-biblioref">U.S. Census Bureau 2023</a>)</span>.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 6 × 4
+  stateabbr tract_fips20 rate_65_plus rate_85_plus
+  &lt;chr&gt;     &lt;chr&gt;               &lt;dbl&gt;        &lt;dbl&gt;
+1 AL        01001201000        0.160        0.0158
+2 AL        01001202000        0.154        0.0102
+3 AL        01001203000        0.186        0.0249
+4 AL        01001204000        0.226        0.0313
+5 AL        01001205010        0.178        0.0134
+6 AL        01001205020        0.0888       0.0058</code></pre>
+</div>
+</div>
 <p>Merge data. Since there are two columns for total population, we will use the one that is more complete, <code>totalpopulation</code>, from the CDC PLACES data. We will also rename the columns for clarity and consistency and generate a new variable, <code>density_per_sqmi</code>, which is the total population divided by the area in square miles.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
@@ -142,20 +156,20 @@ div.csl-indent {
 4         WA 53001950303      37.0            3067    45.7955475
 5         WA 53005010815      32.8            9675     6.3684745
 6         WA 53021020404      42.7            2615     0.4565612
-  count_ntm_stops stops_per_capita stops_per_sqmile ruca rurality
-1              13         5.605865         3.109011 &lt;NA&gt;     &lt;NA&gt;
-2              26         6.695854        36.954205 &lt;NA&gt;     &lt;NA&gt;
-3               0         0.000000         0.000000 &lt;NA&gt;     &lt;NA&gt;
-4               0         0.000000         0.000000 &lt;NA&gt;     &lt;NA&gt;
-5              16         1.985112         2.512376 &lt;NA&gt;     &lt;NA&gt;
-6              12         4.389174        26.283443 &lt;NA&gt;     &lt;NA&gt;
-  density_per_sqmi
-1        605.53960
-2       5231.86258
-3       1651.16585
-4         66.97158
-5       1519.20213
-6       5727.60043</code></pre>
+  count_ntm_stops stops_per_capita stops_per_sqmile ruca rurality rate_65_plus
+1              13         5.605865         3.109011 &lt;NA&gt;     &lt;NA&gt;           NA
+2              26         6.695854        36.954205 &lt;NA&gt;     &lt;NA&gt;       0.1824
+3               0         0.000000         0.000000 &lt;NA&gt;     &lt;NA&gt;           NA
+4               0         0.000000         0.000000 &lt;NA&gt;     &lt;NA&gt;       0.0765
+5              16         1.985112         2.512376 &lt;NA&gt;     &lt;NA&gt;           NA
+6              12         4.389174        26.283443 &lt;NA&gt;     &lt;NA&gt;           NA
+  rate_85_plus density_per_sqmi
+1           NA        605.53960
+2       0.0244       5231.86258
+3           NA       1651.16585
+4       0.0045         66.97158
+5           NA       1519.20213
+6           NA       5727.60043</code></pre>
 </div>
 </div>
 </section>
@@ -174,11 +188,11 @@ div.csl-indent {
 </tr>
 <tr class="even">
 <td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">63887</td>
+<td style="text-align: left;">63907</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">11</td>
+<td style="text-align: left;">13</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">_______________________</td>
@@ -194,7 +208,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">numeric</td>
-<td style="text-align: left;">7</td>
+<td style="text-align: left;">9</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">________________________</td>
@@ -233,7 +247,7 @@ div.csl-indent {
 <td style="text-align: right;">1.0</td>
 <td style="text-align: left;">FALSE</td>
 <td style="text-align: right;">40</td>
-<td style="text-align: left;">CA: 9070, TX: 6844, FL: 5077, OH: 3154</td>
+<td style="text-align: left;">CA: 9070, TX: 6845, FL: 5080, OH: 3155</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">fips</td>
@@ -241,23 +255,23 @@ div.csl-indent {
 <td style="text-align: right;">1.0</td>
 <td style="text-align: left;">FALSE</td>
 <td style="text-align: right;">63887</td>
-<td style="text-align: left;">010: 1, 010: 1, 010: 1, 010: 1</td>
+<td style="text-align: left;">270: 3, 040: 2, 040: 2, 040: 2</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">ruca</td>
-<td style="text-align: right;">19249</td>
+<td style="text-align: right;">19251</td>
 <td style="text-align: right;">0.7</td>
 <td style="text-align: left;">FALSE</td>
 <td style="text-align: right;">21</td>
-<td style="text-align: left;">1: 31021, 2: 4002, 4: 2507, 10: 1908</td>
+<td style="text-align: left;">1: 31038, 2: 4003, 4: 2507, 10: 1908</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">rurality</td>
-<td style="text-align: right;">19246</td>
+<td style="text-align: right;">19248</td>
 <td style="text-align: right;">0.7</td>
 <td style="text-align: left;">FALSE</td>
 <td style="text-align: right;">3</td>
-<td style="text-align: left;">Urb: 31653, Sub: 6759, Rur: 6229</td>
+<td style="text-align: left;">Urb: 31670, Sub: 6760, Rur: 6229</td>
 </tr>
 </tbody>
 </table>
@@ -309,12 +323,12 @@ div.csl-indent {
 <td style="text-align: left;">totalpopulation</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
-<td style="text-align: right;">4007.03</td>
-<td style="text-align: right;">1683.37</td>
+<td style="text-align: right;">4006.94</td>
+<td style="text-align: right;">1683.46</td>
 <td style="text-align: right;">54.00</td>
 <td style="text-align: right;">2813.00</td>
 <td style="text-align: right;">3820.00</td>
-<td style="text-align: right;">4980.50</td>
+<td style="text-align: right;">4981.00</td>
 <td style="text-align: right;">37892.00</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
@@ -322,12 +336,12 @@ div.csl-indent {
 <td style="text-align: left;">area_sq_miles</td>
 <td style="text-align: right;">876</td>
 <td style="text-align: right;">0.99</td>
-<td style="text-align: right;">45.68</td>
-<td style="text-align: right;">573.43</td>
+<td style="text-align: right;">45.66</td>
+<td style="text-align: right;">573.34</td>
 <td style="text-align: right;">0.01</td>
 <td style="text-align: right;">0.74</td>
-<td style="text-align: right;">1.91</td>
-<td style="text-align: right;">11.86</td>
+<td style="text-align: right;">1.90</td>
+<td style="text-align: right;">11.85</td>
 <td style="text-align: right;">85554.74</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
@@ -349,7 +363,7 @@ div.csl-indent {
 <td style="text-align: right;">876</td>
 <td style="text-align: right;">0.99</td>
 <td style="text-align: right;">2.04</td>
-<td style="text-align: right;">64.32</td>
+<td style="text-align: right;">64.31</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
@@ -361,25 +375,51 @@ div.csl-indent {
 <td style="text-align: left;">stops_per_sqmile</td>
 <td style="text-align: right;">876</td>
 <td style="text-align: right;">0.99</td>
-<td style="text-align: right;">8.75</td>
+<td style="text-align: right;">8.76</td>
 <td style="text-align: right;">20.90</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
-<td style="text-align: right;">9.37</td>
+<td style="text-align: right;">9.38</td>
 <td style="text-align: right;">689.33</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">rate_65_plus</td>
+<td style="text-align: right;">38297</td>
+<td style="text-align: right;">0.40</td>
+<td style="text-align: right;">0.18</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.13</td>
+<td style="text-align: right;">0.17</td>
+<td style="text-align: right;">0.22</td>
+<td style="text-align: right;">0.90</td>
+<td style="text-align: left;">▇▆▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">rate_85_plus</td>
+<td style="text-align: right;">38297</td>
+<td style="text-align: right;">0.40</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.48</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">density_per_sqmi</td>
 <td style="text-align: right;">876</td>
 <td style="text-align: right;">0.99</td>
-<td style="text-align: right;">4002.47</td>
-<td style="text-align: right;">6780.22</td>
+<td style="text-align: right;">4003.35</td>
+<td style="text-align: right;">6780.55</td>
 <td style="text-align: right;">0.03</td>
-<td style="text-align: right;">325.38</td>
-<td style="text-align: right;">2133.98</td>
-<td style="text-align: right;">4976.97</td>
+<td style="text-align: right;">325.50</td>
+<td style="text-align: right;">2134.24</td>
+<td style="text-align: right;">4978.35</td>
 <td style="text-align: right;">224278.50</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
@@ -387,7 +427,7 @@ div.csl-indent {
 </table>
 </div>
 </div>
-<p>After filtering raw data for non-missing observations of our dependent variable, feelings of social isolation (<code>isolation</code>), we have 63887 observations. County FIPs and state columns are 100% complete. A small number of counties in the data have missing transit data (1.371171 % missing) and some counties are not categorized into urban/suburban/rural categories (30.1297604 % missing).</p>
+<p>After filtering raw data for non-missing observations of our dependent variable, feelings of social isolation (<code>isolation</code>), we have 63907 observations. County FIPs and state columns are 100% complete. A small number of counties in the data have missing transit data (1.3707419 % missing) and some counties are not categorized into urban/suburban/rural categories (30.1234607 % missing). The age data has significant missingness (59.9261427 % missing).</p>
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -399,7 +439,7 @@ div.csl-indent {
 </tr>
 <tr class="even">
 <td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">63887</td>
+<td style="text-align: left;">63907</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
@@ -493,8 +533,8 @@ div.csl-indent {
 <td style="text-align: left;">AZ</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">5.89</td>
-<td style="text-align: right;">8.57</td>
+<td style="text-align: right;">5.86</td>
+<td style="text-align: right;">8.56</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">2</td>
@@ -718,7 +758,7 @@ div.csl-indent {
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">7.57</td>
-<td style="text-align: right;">13.13</td>
+<td style="text-align: right;">13.11</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
@@ -857,7 +897,7 @@ div.csl-indent {
 <td style="text-align: left;">OH</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">5.36</td>
+<td style="text-align: right;">5.35</td>
 <td style="text-align: right;">9.52</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
@@ -983,8 +1023,8 @@ div.csl-indent {
 <td style="text-align: left;">WI</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">5.34</td>
-<td style="text-align: right;">11.07</td>
+<td style="text-align: right;">5.36</td>
+<td style="text-align: right;">11.08</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">0</td>
@@ -1037,11 +1077,11 @@ div.csl-indent {
 </tr>
 <tr class="even">
 <td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">63011</td>
+<td style="text-align: left;">63031</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">11</td>
+<td style="text-align: left;">13</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">_______________________</td>
@@ -1057,7 +1097,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">numeric</td>
-<td style="text-align: left;">7</td>
+<td style="text-align: left;">9</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">________________________</td>
@@ -1096,7 +1136,7 @@ div.csl-indent {
 <td style="text-align: right;">1.00</td>
 <td style="text-align: left;">FALSE</td>
 <td style="text-align: right;">39</td>
-<td style="text-align: left;">CA: 9070, TX: 6844, FL: 5077, OH: 3154</td>
+<td style="text-align: left;">CA: 9070, TX: 6845, FL: 5080, OH: 3155</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">fips</td>
@@ -1104,23 +1144,23 @@ div.csl-indent {
 <td style="text-align: right;">1.00</td>
 <td style="text-align: left;">FALSE</td>
 <td style="text-align: right;">63011</td>
-<td style="text-align: left;">010: 1, 010: 1, 010: 1, 010: 1</td>
+<td style="text-align: left;">270: 3, 040: 2, 040: 2, 040: 2</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">ruca</td>
-<td style="text-align: right;">18373</td>
+<td style="text-align: right;">18375</td>
 <td style="text-align: right;">0.71</td>
 <td style="text-align: left;">FALSE</td>
 <td style="text-align: right;">21</td>
-<td style="text-align: left;">1: 31021, 2: 4002, 4: 2507, 10: 1908</td>
+<td style="text-align: left;">1: 31038, 2: 4003, 4: 2507, 10: 1908</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">rurality</td>
-<td style="text-align: right;">18370</td>
+<td style="text-align: right;">18372</td>
 <td style="text-align: right;">0.71</td>
 <td style="text-align: left;">FALSE</td>
 <td style="text-align: right;">3</td>
-<td style="text-align: left;">Urb: 31653, Sub: 6759, Rur: 6229</td>
+<td style="text-align: left;">Urb: 31670, Sub: 6760, Rur: 6229</td>
 </tr>
 </tbody>
 </table>
@@ -1158,7 +1198,7 @@ div.csl-indent {
 <tr class="odd">
 <td style="text-align: left;">isolation</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">33.73</td>
 <td style="text-align: right;">3.92</td>
 <td style="text-align: right;">19.50</td>
@@ -1171,9 +1211,9 @@ div.csl-indent {
 <tr class="even">
 <td style="text-align: left;">totalpopulation</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">4005.51</td>
-<td style="text-align: right;">1686.41</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">4005.42</td>
+<td style="text-align: right;">1686.50</td>
 <td style="text-align: right;">54.00</td>
 <td style="text-align: right;">2810.00</td>
 <td style="text-align: right;">3817.00</td>
@@ -1184,20 +1224,20 @@ div.csl-indent {
 <tr class="odd">
 <td style="text-align: left;">area_sq_miles</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">45.68</td>
-<td style="text-align: right;">573.43</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">45.66</td>
+<td style="text-align: right;">573.34</td>
 <td style="text-align: right;">0.01</td>
 <td style="text-align: right;">0.74</td>
-<td style="text-align: right;">1.91</td>
-<td style="text-align: right;">11.86</td>
+<td style="text-align: right;">1.90</td>
+<td style="text-align: right;">11.85</td>
 <td style="text-align: right;">85554.74</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">count_ntm_stops</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">5.31</td>
 <td style="text-align: right;">9.71</td>
 <td style="text-align: right;">0.00</td>
@@ -1210,9 +1250,9 @@ div.csl-indent {
 <tr class="odd">
 <td style="text-align: left;">stops_per_capita</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">1.00</td>
 <td style="text-align: right;">2.04</td>
-<td style="text-align: right;">64.32</td>
+<td style="text-align: right;">64.31</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
@@ -1223,26 +1263,52 @@ div.csl-indent {
 <tr class="even">
 <td style="text-align: left;">stops_per_sqmile</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">8.75</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">8.76</td>
 <td style="text-align: right;">20.90</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">0.00</td>
-<td style="text-align: right;">9.37</td>
+<td style="text-align: right;">9.38</td>
 <td style="text-align: right;">689.33</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">rate_65_plus</td>
+<td style="text-align: right;">37421</td>
+<td style="text-align: right;">0.41</td>
+<td style="text-align: right;">0.18</td>
+<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.13</td>
+<td style="text-align: right;">0.17</td>
+<td style="text-align: right;">0.22</td>
+<td style="text-align: right;">0.90</td>
+<td style="text-align: left;">▇▆▁▁▁</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">rate_85_plus</td>
+<td style="text-align: right;">37421</td>
+<td style="text-align: right;">0.41</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.01</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">0.48</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">density_per_sqmi</td>
 <td style="text-align: right;">0</td>
-<td style="text-align: right;">1</td>
-<td style="text-align: right;">4002.47</td>
-<td style="text-align: right;">6780.22</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">4003.35</td>
+<td style="text-align: right;">6780.55</td>
 <td style="text-align: right;">0.03</td>
-<td style="text-align: right;">325.38</td>
-<td style="text-align: right;">2133.98</td>
-<td style="text-align: right;">4976.97</td>
+<td style="text-align: right;">325.50</td>
+<td style="text-align: right;">2134.24</td>
+<td style="text-align: right;">4978.35</td>
 <td style="text-align: right;">224278.50</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
@@ -1250,7 +1316,7 @@ div.csl-indent {
 </table>
 </div>
 </div>
-<p>Now there are 63011 observations remaining after removing Connecticut, and there are no missing isolation or transit data. We note a few census tracts with very low populations (e.g., 1 person in central park or 17 people in the national mall) that may not be representative of the general population.</p>
+<p>Now there are 63031 observations remaining after removing Connecticut, and there are no missing isolation or transit data. We note a few census tracts with very low populations (e.g., 1 person in central park or 17 people in the national mall) that may not be representative of the general population.</p>
 </section>
 <section id="distribution" class="level3">
 <h3 class="anchored" data-anchor-id="distribution">Distribution</h3>
@@ -1273,7 +1339,7 @@ div.csl-indent {
 </tr>
 <tr class="even">
 <td style="text-align: left;">Number of rows</td>
-<td style="text-align: left;">63011</td>
+<td style="text-align: left;">63031</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
@@ -1304,17 +1370,17 @@ div.csl-indent {
 <p><strong>Variable type: numeric</strong></p>
 <table class="caption-top table table-sm table-striped small">
 <colgroup>
-<col style="width: 16%">
-<col style="width: 9%">
-<col style="width: 13%">
-<col style="width: 7%">
-<col style="width: 7%">
-<col style="width: 4%">
-<col style="width: 6%">
-<col style="width: 7%">
-<col style="width: 7%">
-<col style="width: 9%">
+<col style="width: 17%">
+<col style="width: 10%">
+<col style="width: 14%">
+<col style="width: 8%">
+<col style="width: 8%">
 <col style="width: 5%">
+<col style="width: 6%">
+<col style="width: 8%">
+<col style="width: 8%">
+<col style="width: 10%">
+<col style="width: 6%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1337,9 +1403,9 @@ div.csl-indent {
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
 <td style="text-align: right;">2.04</td>
-<td style="text-align: right;">64.32</td>
+<td style="text-align: right;">64.31</td>
 <td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.0</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">2.00</td>
 <td style="text-align: right;">12461.54</td>
@@ -1349,12 +1415,12 @@ div.csl-indent {
 <td style="text-align: left;">density_per_sqmi</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">4002.47</td>
-<td style="text-align: right;">6780.22</td>
+<td style="text-align: right;">4003.35</td>
+<td style="text-align: right;">6780.55</td>
 <td style="text-align: right;">0.03</td>
-<td style="text-align: right;">325.38</td>
-<td style="text-align: right;">2133.98</td>
-<td style="text-align: right;">4976.97</td>
+<td style="text-align: right;">325.5</td>
+<td style="text-align: right;">2134.24</td>
+<td style="text-align: right;">4978.35</td>
 <td style="text-align: right;">224278.50</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
@@ -1365,7 +1431,7 @@ div.csl-indent {
 <td style="text-align: right;">5.31</td>
 <td style="text-align: right;">9.71</td>
 <td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.00</td>
+<td style="text-align: right;">0.0</td>
 <td style="text-align: right;">0.00</td>
 <td style="text-align: right;">8.00</td>
 <td style="text-align: right;">195.00</td>
@@ -1422,23 +1488,23 @@ lm(formula = isolation ~ count_ntm_stops + area_sq_miles + totalpopulation +
 
 Residuals:
      Min       1Q   Median       3Q      Max 
--13.3750  -2.5022  -0.1316   2.4005  18.8167 
+-13.3745  -2.5015  -0.1325   2.4003  18.8167 
 
 Coefficients:
                    Estimate Std. Error t value Pr(&gt;|t|)    
-(Intercept)       3.383e+01  5.257e-02 643.427  &lt; 2e-16 ***
-count_ntm_stops   7.063e-02  1.829e-03  38.621  &lt; 2e-16 ***
-area_sq_miles     1.854e-04  2.738e-05   6.772 1.29e-11 ***
-totalpopulation  -7.293e-05  1.092e-05  -6.677 2.47e-11 ***
-ruralitySuburban -3.544e-01  5.218e-02  -6.791 1.13e-11 ***
-ruralityRural    -1.003e+00  5.547e-02 -18.075  &lt; 2e-16 ***
+(Intercept)       3.382e+01  5.255e-02 643.684  &lt; 2e-16 ***
+count_ntm_stops   7.069e-02  1.828e-03  38.665  &lt; 2e-16 ***
+area_sq_miles     1.854e-04  2.737e-05   6.772 1.28e-11 ***
+totalpopulation  -7.298e-05  1.092e-05  -6.684 2.35e-11 ***
+ruralitySuburban -3.537e-01  5.217e-02  -6.780 1.22e-11 ***
+ruralityRural    -1.002e+00  5.546e-02 -18.069  &lt; 2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 3.756 on 44635 degrees of freedom
-  (18370 observations deleted due to missingness)
-Multiple R-squared:  0.05281,   Adjusted R-squared:  0.05271 
-F-statistic: 497.7 on 5 and 44635 DF,  p-value: &lt; 2.2e-16</code></pre>
+Residual standard error: 3.756 on 44653 degrees of freedom
+  (18372 observations deleted due to missingness)
+Multiple R-squared:  0.05287,   Adjusted R-squared:  0.05276 
+F-statistic: 498.5 on 5 and 44653 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 <p>The overall model is statistically significant (F-statistic p-value &lt; 2.2e-16). All variables are highly significant (p &lt; 0.001, indicated by ***):</p>
@@ -1482,8 +1548,8 @@ F-statistic: 497.7 on 5 and 44635 DF,  p-value: &lt; 2.2e-16</code></pre>
 <p>Secondary RUCA codes, 2010. Source: 2010 USDA-ERS.</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 26%">
-<col style="width: 73%">
+<col style="width: 30%">
+<col style="width: 69%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1639,6 +1705,9 @@ Pan, Longrong, Robert Melendez, Philippa Clarke, Grace Noppert, Iris Gomez-Lopez
 </div>
 <div id="ref-paykin2022" class="csl-entry" role="listitem">
 Paykin, Susan, Moksha Menghaney, Qinyun Lin, and Marynia Kolak. 2022. <em>Spaykin/Rural-Urban-Classification: Rural, Suburban, Urban Classification for Small Area Analysis</em>. Zenodo. <a href="https://doi.org/10.5281/ZENODO.6359701">https://doi.org/10.5281/ZENODO.6359701</a>.
+</div>
+<div id="ref-census2023" class="csl-entry" role="listitem">
+U.S. Census Bureau. 2023. <span>“2020 Census Demographic and Housing Characteristics File (DHC).”</span> Washington, DC: U.S. Census Bureau.
 </div>
 </div></section></div></main>
 <!-- /main column -->
