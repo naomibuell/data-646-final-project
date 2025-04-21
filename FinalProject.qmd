@@ -25,6 +25,7 @@ library(readr)
 library(ggplot2)
 library(corrplot)
 library(tidycensus)
+library(caret)
 ```
 
 Load [PLACES: Local Data for Better Health, Census Tract Data 2024 release](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Census-Tract-D/cwsq-ngmh/about_data) using [@CDCPLACES] [@Greenlund2022]. This is 2022 data.
@@ -374,32 +375,55 @@ corrplot(
 )
 ```
 
-## Analysis
-
-First, we will fit a linear model to the data.
+There are no columns with pair-wise correlations above the threshold .75, so we don't need to filter out any highly correlated predictor variables.
 
 ```{r}
-#| label: hypothesis-test
+#| label: find-correlations
+#| echo: false
+findCorrelation(cor(df_nonmiss |> select_if(is.numeric)), cutoff = .75)
+```
+
+## Analysis
+
+First, we will fit a linear model to the data for simplicity.
+
+```{r}
+#| label: fit-a-linear-model
 #| echo: false
 #| warning: false
 
-# Fit a linear model
+# Removing state_abbr, fips, and ruca from the predictors
+df_predictors <- df_nonmiss |>
+    select(-c(state_abbr, fips, ruca))
+
 lm_model <- lm(
-    isolation ~ count_ntm_stops + area_sq_miles + totalpopulation + rurality,
-    data = df_nonmiss
+    isolation ~ .,
+    data = df_predictors
 )
 summary(lm_model)
 ```
 
-The overall model is statistically significant (F-statistic p-value \< 2.2e-16). All variables are highly significant (p \< 0.001, indicated by \*\*\*):
+-   `totalpopulation`: For each additional person in a census tract, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["totalpopulation"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["totalpopulation"] * 100, 2))`%**.
 
--   stops_per_capita: For each unit increase, the data value increases by 0.001377
+-   `area_sq_miles`: For each additional square mile in a census tract, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["area_sq_miles"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["area_sq_miles"] * 100, 2))`%**.
 
--   density_per_sqmi: For each unit increase, the data value increases by 0.0001861
+-   `count_ntm_stops`: For each additional transit stop in a census tract, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["count_ntm_stops"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["count_ntm_stops"] * 100, 2))`%**.
 
--   ruca1: For each unit increase, the data value decreases by 0.04216
+-   `stops_per_sqmile`: For each additional stop per square mile, the probability who report feeling socially isolated in a census tract **`r ifelse(lm_model$coefficients["stops_per_sqmile"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["stops_per_sqmile"] * 100, 2))`%**.
 
-R-squared: 0.09819 (≈ 9.82%) This means the model explains about 9.82% of the variance in the data This is a relatively low R-squared, suggesting other important factors might not be included. The low R-squared suggests this model might not be the best fit for prediction.
+-   `ruralitySuburban`: If the census tract is considered suburban, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["ruralitySuburban"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["ruralitySuburban"] * 100, 2))`%** compared to an urban tract.
+
+-   `ruralityRural`: If the census tract is considered rural, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["ruralityRural"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["ruralityRural"] * 100, 2))`%** compared to an urban tract.
+
+-   `rate_65_plus`: For each additional percentage point of the population aged 65 and older, the probability who report feeling socially isolated in a tract **`r ifelse(lm_model$coefficients["rate_65_plus"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["rate_65_plus"] * 100, 2))`%**.
+
+-   `rate_85_plus`: For each additional percentage point of the population aged 85 and older, the probability who report feeling socially isolated in a tract **`r ifelse(lm_model$coefficients["rate_85_plus"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["rate_85_plus"] * 100, 2))`%**.
+
+-   `density_per_sqmi`: For each additional person per square mile, the probability who report feeling socially isolated in a tract **`r ifelse(lm_model$coefficients["density_per_sqmi"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["density_per_sqmi"] * 100, 2))`%**.
+
+-   `stops_per_capita` was **insignificant**, indicating that the number of transit stops per capita does not significantly affect feelings of social isolation in this model.
+
+The model's R-squared value indicates that approximately `r round(summary(lm_model)$r.squared * 100, 2)`% of the variance in feelings of social isolation can be explained by the model.
 
 Next, we try bucketing the data by RUCA code. We will use `rurality` that is a factor with three levels: urban, suburban, and rural.
 
@@ -438,7 +462,7 @@ Next, we try bucketing the data by RUCA code. We will use `rurality` that is a f
 :   Secondary RUCA codes, 2010. Source: 2010 USDA-ERS.
 
     | **Code** | **Classification description** |
-    |----------------------|--------------------------------------------------|
+    |-----------------------|-------------------------------------------------|
     | 1 Metropolitan area core: primary flow within an urbanized area (UA) |  |
     | 1.0 | No additional code |
     | 1.1 | Secondary flow 30% to 50% to a larger UA |

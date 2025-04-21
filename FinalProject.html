@@ -95,12 +95,12 @@ div.csl-indent {
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>  stateabbr locationname data_value totalpopulation
-1        WA  53021020101       43.0            2532
-2        WA  53007960803       36.2            3681
-3        WA  53011041334       34.6            2958
-4        WA  53001950303       37.0            3067
-5        WA  53005010815       32.8            9675
-6        WA  53021020404       42.7            2615</code></pre>
+1        FL  12086001801       34.9            3924
+2        FL  12086007200       31.0            2537
+3        FL  12086002202       32.6            4725
+4        FL  12086008415       26.3            5047
+5        FL  12086004405       29.3            3030
+6        FL  12086010213       30.1            4606</code></pre>
 </div>
 </div>
 <p>Get <a href="https://www.icpsr.umich.edu/web/ICPSR/studies/38605/datadocumentation#">Public Transit Stops by Census Tract and ZIP Code Tabulation Area, United States, 2024</a> from the National Neighborhood Data Archive (NaNDA) <span class="citation" data-cites="pan2023">(<a href="#ref-pan2023" role="doc-biblioref">Pan et al. 2023</a>)</span>.</p>
@@ -150,26 +150,26 @@ div.csl-indent {
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>  state_abbr        fips isolation totalpopulation area_sq_miles
-1         WA 53021020101      43.0            2532     4.1813946
-2         WA 53007960803      36.2            3681     0.7035735
-3         WA 53011041334      34.6            2958     1.7914615
-4         WA 53001950303      37.0            3067    45.7955475
-5         WA 53005010815      32.8            9675     6.3684745
-6         WA 53021020404      42.7            2615     0.4565612
+1         FL 12086001801      34.9            3924     0.5048869
+2         FL 12086007200      31.0            2537     0.3517078
+3         FL 12086002202      32.6            4725     0.6207889
+4         FL 12086008415      26.3            5047     1.5695713
+5         FL 12086004405      29.3            3030     0.1355257
+6         FL 12086010213      30.1            4606     0.5791057
   count_ntm_stops stops_per_capita stops_per_sqmile ruca rurality rate_65_plus
-1              13         5.605865         3.109011 &lt;NA&gt;     &lt;NA&gt;           NA
-2              26         6.695854        36.954205 &lt;NA&gt;     &lt;NA&gt;       0.1824
-3               0         0.000000         0.000000 &lt;NA&gt;     &lt;NA&gt;           NA
-4               0         0.000000         0.000000 &lt;NA&gt;     &lt;NA&gt;       0.0765
-5              16         1.985112         2.512376 &lt;NA&gt;     &lt;NA&gt;           NA
-6              12         4.389174        26.283443 &lt;NA&gt;     &lt;NA&gt;           NA
+1              30         5.664652        59.419250    1    Urban           NA
+2              18         6.749156        51.178848    1    Urban           NA
+3              22         3.474964        35.438778    1    Urban           NA
+4               5         1.023961         3.185583    1    Urban           NA
+5               9         2.391709        66.408058    1    Urban           NA
+6               4         1.041938         6.907201 &lt;NA&gt;     &lt;NA&gt;           NA
   rate_85_plus density_per_sqmi
-1           NA        605.53960
-2       0.0244       5231.86258
-3           NA       1651.16585
-4       0.0045         66.97158
-5           NA       1519.20213
-6           NA       5727.60043</code></pre>
+1           NA         7772.038
+2           NA         7213.375
+3           NA         7611.283
+4           NA         3215.528
+5           NA        22357.380
+6           NA         7953.643</code></pre>
 </div>
 </div>
 </section>
@@ -1474,46 +1474,62 @@ div.csl-indent {
 </div>
 </div>
 </div>
+<p>There are no columns with pair-wise correlations above the threshold .75, so we don’t need to filter out any highly correlated predictor variables.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>integer(0)</code></pre>
+</div>
+</div>
 </section>
 </section>
 <section id="analysis" class="level2">
 <h2 class="anchored" data-anchor-id="analysis">Analysis</h2>
-<p>First, we will fit a linear model to the data.</p>
+<p>First, we will fit a linear model to the data for simplicity.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>
 Call:
-lm(formula = isolation ~ count_ntm_stops + area_sq_miles + totalpopulation + 
-    rurality, data = df_nonmiss)
+lm(formula = isolation ~ ., data = df_predictors)
 
 Residuals:
      Min       1Q   Median       3Q      Max 
--13.3745  -2.5015  -0.1325   2.4003  18.8167 
+-11.0938  -1.8674  -0.0829   1.7961  14.0631 
 
 Coefficients:
                    Estimate Std. Error t value Pr(&gt;|t|)    
-(Intercept)       3.382e+01  5.255e-02 643.684  &lt; 2e-16 ***
-count_ntm_stops   7.069e-02  1.828e-03  38.665  &lt; 2e-16 ***
-area_sq_miles     1.854e-04  2.737e-05   6.772 1.28e-11 ***
-totalpopulation  -7.298e-05  1.092e-05  -6.684 2.35e-11 ***
-ruralitySuburban -3.537e-01  5.217e-02  -6.780 1.22e-11 ***
-ruralityRural    -1.002e+00  5.546e-02 -18.069  &lt; 2e-16 ***
+(Intercept)       3.894e+01  9.811e-02 396.936  &lt; 2e-16 ***
+totalpopulation  -1.975e-04  1.346e-05 -14.671  &lt; 2e-16 ***
+area_sq_miles     1.812e-04  7.611e-05   2.381 0.017261 *  
+count_ntm_stops   4.320e-02  3.081e-03  14.020  &lt; 2e-16 ***
+stops_per_capita -1.376e-03  1.182e-03  -1.164 0.244303    
+stops_per_sqmile  5.936e-03  1.752e-03   3.387 0.000708 ***
+ruralitySuburban  6.519e-01  6.292e-02  10.362  &lt; 2e-16 ***
+ruralityRural     7.232e-01  6.139e-02  11.782  &lt; 2e-16 ***
+rate_65_plus     -3.221e+01  4.692e-01 -68.661  &lt; 2e-16 ***
+rate_85_plus      2.233e+01  2.039e+00  10.953  &lt; 2e-16 ***
+density_per_sqmi  1.199e-04  4.655e-06  25.751  &lt; 2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 3.756 on 44653 degrees of freedom
-  (18372 observations deleted due to missingness)
-Multiple R-squared:  0.05287,   Adjusted R-squared:  0.05276 
-F-statistic: 498.5 on 5 and 44653 DF,  p-value: &lt; 2.2e-16</code></pre>
+Residual standard error: 2.761 on 18999 degrees of freedom
+  (44021 observations deleted due to missingness)
+Multiple R-squared:  0.4435,    Adjusted R-squared:  0.4432 
+F-statistic:  1514 on 10 and 18999 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
-<p>The overall model is statistically significant (F-statistic p-value &lt; 2.2e-16). All variables are highly significant (p &lt; 0.001, indicated by ***):</p>
 <ul>
-<li><p>stops_per_capita: For each unit increase, the data value increases by 0.001377</p></li>
-<li><p>density_per_sqmi: For each unit increase, the data value increases by 0.0001861</p></li>
-<li><p>ruca1: For each unit increase, the data value decreases by 0.04216</p></li>
+<li><p><code>totalpopulation</code>: For each additional person in a census tract, the probability who report feeling socially isolated decreases by 0.02%.</p></li>
+<li><p><code>area_sq_miles</code>: For each additional square mile in a census tract, the probability who report feeling socially isolated increases by 0.02%.</p></li>
+<li><p><code>count_ntm_stops</code>: For each additional transit stop in a census tract, the probability who report feeling socially isolated increases by 4.32%.</p></li>
+<li><p><code>stops_per_sqmile</code>: For each additional stop per square mile, the probability who report feeling socially isolated in a census tract increases by 0.59%.</p></li>
+<li><p><code>ruralitySuburban</code>: If the census tract is considered suburban, the probability who report feeling socially isolated increases by 65.19% compared to an urban tract.</p></li>
+<li><p><code>ruralityRural</code>: If the census tract is considered rural, the probability who report feeling socially isolated increases by 72.32% compared to an urban tract.</p></li>
+<li><p><code>rate_65_plus</code>: For each additional percentage point of the population aged 65 and older, the probability who report feeling socially isolated in a tract decreases by 3221.33%.</p></li>
+<li><p><code>rate_85_plus</code>: For each additional percentage point of the population aged 85 and older, the probability who report feeling socially isolated in a tract increases by 2233.38%.</p></li>
+<li><p><code>density_per_sqmi</code>: For each additional person per square mile, the probability who report feeling socially isolated in a tract increases by 0.01%.</p></li>
+<li><p><code>stops_per_capita</code> was insignificant, indicating that the number of transit stops per capita does not significantly affect feelings of social isolation in this model.</p></li>
 </ul>
-<p>R-squared: 0.09819 (≈ 9.82%) This means the model explains about 9.82% of the variance in the data This is a relatively low R-squared, suggesting other important factors might not be included. The low R-squared suggests this model might not be the best fit for prediction.</p>
+<p>The model’s R-squared value indicates that approximately 44.35% of the variance in feelings of social isolation can be explained by the model.</p>
 <p>Next, we try bucketing the data by RUCA code. We will use <code>rurality</code> that is a factor with three levels: urban, suburban, and rural.</p>
 </section>
 <section id="data-dictionary" class="level2">
