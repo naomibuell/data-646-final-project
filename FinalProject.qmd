@@ -345,6 +345,8 @@ The figure below shows that feelings of social isolation among adults is most co
 
 ```{r}
 #| label: corrplot
+#| fig.width: 8
+#| fig.height: 8
 
 renamed_df <- df_nonmiss |>
     mutate("Rurality (RUCA code)" = as.numeric(ruca)) |>
@@ -363,16 +365,16 @@ renamed_df <- df_nonmiss |>
 
 cor_matrix <- renamed_df |>
     select_if(is.numeric) |>
-    cor(use = "pairwise.complete.obs") # Compute correlation matrix, not including NAs (in pairs)
+    cor(use = "pairwise.complete.obs")
 
 corrplot(
     cor_matrix,
     method = "circle",
     type = "upper",
     tl.srt = 20,
-    # diag = FALSE,
+    tl.cex = 0.7, # Reduce font size of labels
     order = "hclust"
-)
+) # Fill in bottom half
 ```
 
 There are no columns with pair-wise correlations above the threshold .75, so we don't need to filter out any highly correlated predictor variables.
@@ -380,6 +382,8 @@ There are no columns with pair-wise correlations above the threshold .75, so we 
 ```{r}
 #| label: find-correlations
 #| echo: false
+#| include: false
+
 findCorrelation(cor(df_nonmiss |> select_if(is.numeric)), cutoff = .75)
 ```
 
@@ -427,9 +431,17 @@ The model's R-squared value indicates that approximately `r round(summary(lm_mod
 
 Next, we try bucketing the data by RUCA code. We will use `rurality` that is a factor with three levels: urban, suburban, and rural.
 
+RICHIE to do 
+
 ```{r}
 #| label: lm-rurality
 ```
+
+ADD FIGURE of results
+
+## Conclusion
+
+ADD CONLUSION
 
 ## Data Dictionary
 

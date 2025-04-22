@@ -1469,17 +1469,12 @@ div.csl-indent {
 <div class="cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="FinalProject_files/figure-html/corrplot-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="FinalProject_files/figure-html/corrplot-1.png" class="img-fluid figure-img" width="768"></p>
 </figure>
 </div>
 </div>
 </div>
 <p>There are no columns with pair-wise correlations above the threshold .75, so we don’t need to filter out any highly correlated predictor variables.</p>
-<div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>integer(0)</code></pre>
-</div>
-</div>
 </section>
 </section>
 <section id="analysis" class="level2">
@@ -1518,16 +1513,16 @@ F-statistic:  1514 on 10 and 18999 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 <ul>
-<li><p><code>totalpopulation</code>: For each additional person in a census tract, the probability who report feeling socially isolated decreases by 0.02%.</p></li>
-<li><p><code>area_sq_miles</code>: For each additional square mile in a census tract, the probability who report feeling socially isolated increases by 0.02%.</p></li>
-<li><p><code>count_ntm_stops</code>: For each additional transit stop in a census tract, the probability who report feeling socially isolated increases by 4.32%.</p></li>
-<li><p><code>stops_per_sqmile</code>: For each additional stop per square mile, the probability who report feeling socially isolated in a census tract increases by 0.59%.</p></li>
-<li><p><code>ruralitySuburban</code>: If the census tract is considered suburban, the probability who report feeling socially isolated increases by 65.19% compared to an urban tract.</p></li>
-<li><p><code>ruralityRural</code>: If the census tract is considered rural, the probability who report feeling socially isolated increases by 72.32% compared to an urban tract.</p></li>
-<li><p><code>rate_65_plus</code>: For each additional percentage point of the population aged 65 and older, the probability who report feeling socially isolated in a tract decreases by 3221.33%.</p></li>
-<li><p><code>rate_85_plus</code>: For each additional percentage point of the population aged 85 and older, the probability who report feeling socially isolated in a tract increases by 2233.38%.</p></li>
-<li><p><code>density_per_sqmi</code>: For each additional person per square mile, the probability who report feeling socially isolated in a tract increases by 0.01%.</p></li>
-<li><p><code>stops_per_capita</code> was insignificant, indicating that the number of transit stops per capita does not significantly affect feelings of social isolation in this model.</p></li>
+<li><p><code>totalpopulation</code>: For each additional person in a census tract, the probability who report feeling socially isolated <strong>decreases by 0.02%</strong>.</p></li>
+<li><p><code>area_sq_miles</code>: For each additional square mile in a census tract, the probability who report feeling socially isolated <strong>increases by 0.02%</strong>.</p></li>
+<li><p><code>count_ntm_stops</code>: For each additional transit stop in a census tract, the probability who report feeling socially isolated <strong>increases by 4.32%</strong>.</p></li>
+<li><p><code>stops_per_sqmile</code>: For each additional stop per square mile, the probability who report feeling socially isolated in a census tract <strong>increases by 0.59%</strong>.</p></li>
+<li><p><code>ruralitySuburban</code>: If the census tract is considered suburban, the probability who report feeling socially isolated <strong>increases by 65.19%</strong> compared to an urban tract.</p></li>
+<li><p><code>ruralityRural</code>: If the census tract is considered rural, the probability who report feeling socially isolated <strong>increases by 72.32%</strong> compared to an urban tract.</p></li>
+<li><p><code>rate_65_plus</code>: For each additional percentage point of the population aged 65 and older, the probability who report feeling socially isolated in a tract <strong>decreases by 3221.33%</strong>.</p></li>
+<li><p><code>rate_85_plus</code>: For each additional percentage point of the population aged 85 and older, the probability who report feeling socially isolated in a tract <strong>increases by 2233.38%</strong>.</p></li>
+<li><p><code>density_per_sqmi</code>: For each additional person per square mile, the probability who report feeling socially isolated in a tract <strong>increases by 0.01%</strong>.</p></li>
+<li><p><code>stops_per_capita</code> was <strong>insignificant</strong>, indicating that the number of transit stops per capita does not significantly affect feelings of social isolation in this model.</p></li>
 </ul>
 <p>The model’s R-squared value indicates that approximately 44.35% of the variance in feelings of social isolation can be explained by the model.</p>
 <p>Next, we try bucketing the data by RUCA code. We will use <code>rurality</code> that is a factor with three levels: urban, suburban, and rural.</p>
@@ -1564,8 +1559,8 @@ F-statistic:  1514 on 10 and 18999 DF,  p-value: &lt; 2.2e-16</code></pre>
 <p>Secondary RUCA codes, 2010. Source: 2010 USDA-ERS.</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 30%">
-<col style="width: 69%">
+<col style="width: 31%">
+<col style="width: 68%">
 </colgroup>
 <thead>
 <tr class="header">
