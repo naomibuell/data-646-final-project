@@ -53,7 +53,7 @@ div.csl-indent {
 <link href="FinalProject_files/libs/quarto-html/quarto-syntax-highlighting-549806ee2085284f45b00abea8c6df48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="FinalProject_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="FinalProject_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="FinalProject_files/libs/bootstrap/bootstrap-973236bd072d72a04ee9cd82dcc9cb29.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="FinalProject_files/libs/bootstrap/bootstrap-8a79a254b8e706d3c925cde0a310d4f0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
@@ -94,13 +94,13 @@ div.csl-indent {
 <p>Load <a href="https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Census-Tract-D/cwsq-ngmh/about_data">PLACES: Local Data for Better Health, Census Tract Data 2024 release</a> using <span class="citation" data-cites="CDCPLACES">(<a href="#ref-CDCPLACES" role="doc-biblioref">2025</a>)</span> <span class="citation" data-cites="Greenlund2022">(<a href="#ref-Greenlund2022" role="doc-biblioref">Greenlund et al. 2022</a>)</span>. This is 2022 data.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>  stateabbr locationname data_value totalpopulation
-1        FL  12086001801       34.9            3924
-2        FL  12086007200       31.0            2537
-3        FL  12086002202       32.6            4725
-4        FL  12086008415       26.3            5047
-5        FL  12086004405       29.3            3030
-6        FL  12086010213       30.1            4606</code></pre>
+<pre><code>  stateabbr locationname data_value totalpop18plus totalpopulation
+1        FL  12086001801       34.9           2846            3924
+2        FL  12086007200       31.0           2019            2537
+3        FL  12086002202       32.6           3774            4725
+4        FL  12086008415       26.3           3957            5047
+5        FL  12086004405       29.3           2598            3030
+6        FL  12086010213       30.1           3549            4606</code></pre>
 </div>
 </div>
 <p>Get <a href="https://www.icpsr.umich.edu/web/ICPSR/studies/38605/datadocumentation#">Public Transit Stops by Census Tract and ZIP Code Tabulation Area, United States, 2024</a> from the National Neighborhood Data Archive (NaNDA) <span class="citation" data-cites="pan2023">(<a href="#ref-pan2023" role="doc-biblioref">Pan et al. 2023</a>)</span>.</p>
@@ -138,24 +138,24 @@ div.csl-indent {
 <pre><code># A tibble: 6 × 4
   stateabbr tract_fips20 rate_65_plus rate_85_plus
   &lt;chr&gt;     &lt;chr&gt;               &lt;dbl&gt;        &lt;dbl&gt;
-1 AL        01001201000        0.160        0.0158
-2 AL        01001202000        0.154        0.0102
-3 AL        01001203000        0.186        0.0249
-4 AL        01001204000        0.226        0.0313
-5 AL        01001205010        0.178        0.0134
-6 AL        01001205020        0.0888       0.0058</code></pre>
+1 AL        01001201000         16.0          1.58
+2 AL        01001202000         15.4          1.02
+3 AL        01001203000         18.6          2.49
+4 AL        01001204000         22.6          3.13
+5 AL        01001205010         17.8          1.34
+6 AL        01001205020          8.88         0.58</code></pre>
 </div>
 </div>
 <p>Merge data. Since there are two columns for total population, we will use the one that is more complete, <code>totalpopulation</code>, from the CDC PLACES data. We will also rename the columns for clarity and consistency and generate a new variable, <code>density_per_sqmi</code>, which is the total population divided by the area in square miles.</p>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
-<pre><code>  state_abbr        fips isolation totalpopulation area_sq_miles
-1         FL 12086001801      34.9            3924     0.5048869
-2         FL 12086007200      31.0            2537     0.3517078
-3         FL 12086002202      32.6            4725     0.6207889
-4         FL 12086008415      26.3            5047     1.5695713
-5         FL 12086004405      29.3            3030     0.1355257
-6         FL 12086010213      30.1            4606     0.5791057
+<pre><code>  state_abbr        fips isolation totalpop18plus totalpopulation area_sq_miles
+1         FL 12086001801      34.9           2846            3924     0.5048869
+2         FL 12086007200      31.0           2019            2537     0.3517078
+3         FL 12086002202      32.6           3774            4725     0.6207889
+4         FL 12086008415      26.3           3957            5047     1.5695713
+5         FL 12086004405      29.3           2598            3030     0.1355257
+6         FL 12086010213      30.1           3549            4606     0.5791057
   count_ntm_stops stops_per_capita stops_per_sqmile ruca rurality rate_65_plus
 1              30         5.664652        59.419250    1    Urban           NA
 2              18         6.749156        51.178848    1    Urban           NA
@@ -192,7 +192,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">13</td>
+<td style="text-align: left;">14</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">_______________________</td>
@@ -208,7 +208,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">numeric</td>
-<td style="text-align: left;">9</td>
+<td style="text-align: left;">10</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">________________________</td>
@@ -320,6 +320,19 @@ div.csl-indent {
 <td style="text-align: left;">▁▆▇▁▁</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;">totalpop18plus</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">3114.38</td>
+<td style="text-align: right;">1273.35</td>
+<td style="text-align: right;">51.00</td>
+<td style="text-align: right;">2211.00</td>
+<td style="text-align: right;">2979.00</td>
+<td style="text-align: right;">3861.00</td>
+<td style="text-align: right;">31280.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;">totalpopulation</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
@@ -332,7 +345,7 @@ div.csl-indent {
 <td style="text-align: right;">37892.00</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">area_sq_miles</td>
 <td style="text-align: right;">876</td>
 <td style="text-align: right;">0.99</td>
@@ -345,7 +358,7 @@ div.csl-indent {
 <td style="text-align: right;">85554.74</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">count_ntm_stops</td>
 <td style="text-align: right;">876</td>
 <td style="text-align: right;">0.99</td>
@@ -358,7 +371,7 @@ div.csl-indent {
 <td style="text-align: right;">195.00</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">stops_per_capita</td>
 <td style="text-align: right;">876</td>
 <td style="text-align: right;">0.99</td>
@@ -371,7 +384,7 @@ div.csl-indent {
 <td style="text-align: right;">12461.54</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">stops_per_sqmile</td>
 <td style="text-align: right;">876</td>
 <td style="text-align: right;">0.99</td>
@@ -384,33 +397,33 @@ div.csl-indent {
 <td style="text-align: right;">689.33</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">rate_65_plus</td>
 <td style="text-align: right;">38297</td>
 <td style="text-align: right;">0.40</td>
-<td style="text-align: right;">0.18</td>
-<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">17.81</td>
+<td style="text-align: right;">7.77</td>
 <td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.13</td>
-<td style="text-align: right;">0.17</td>
-<td style="text-align: right;">0.22</td>
-<td style="text-align: right;">0.90</td>
+<td style="text-align: right;">12.86</td>
+<td style="text-align: right;">17.46</td>
+<td style="text-align: right;">21.53</td>
+<td style="text-align: right;">90.04</td>
 <td style="text-align: left;">▇▆▁▁▁</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">rate_85_plus</td>
 <td style="text-align: right;">38297</td>
 <td style="text-align: right;">0.40</td>
-<td style="text-align: right;">0.02</td>
-<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">2.00</td>
+<td style="text-align: right;">1.61</td>
 <td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.01</td>
-<td style="text-align: right;">0.02</td>
-<td style="text-align: right;">0.02</td>
-<td style="text-align: right;">0.48</td>
+<td style="text-align: right;">1.10</td>
+<td style="text-align: right;">1.68</td>
+<td style="text-align: right;">2.45</td>
+<td style="text-align: right;">48.15</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">density_per_sqmi</td>
 <td style="text-align: right;">876</td>
 <td style="text-align: right;">0.99</td>
@@ -1081,7 +1094,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Number of columns</td>
-<td style="text-align: left;">13</td>
+<td style="text-align: left;">14</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">_______________________</td>
@@ -1097,7 +1110,7 @@ div.csl-indent {
 </tr>
 <tr class="odd">
 <td style="text-align: left;">numeric</td>
-<td style="text-align: left;">9</td>
+<td style="text-align: left;">10</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">________________________</td>
@@ -1209,6 +1222,19 @@ div.csl-indent {
 <td style="text-align: left;">▁▆▇▁▁</td>
 </tr>
 <tr class="even">
+<td style="text-align: left;">totalpop18plus</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">1.00</td>
+<td style="text-align: right;">3112.14</td>
+<td style="text-align: right;">1274.60</td>
+<td style="text-align: right;">51.00</td>
+<td style="text-align: right;">2209.00</td>
+<td style="text-align: right;">2976.00</td>
+<td style="text-align: right;">3858.00</td>
+<td style="text-align: right;">31280.00</td>
+<td style="text-align: left;">▇▁▁▁▁</td>
+</tr>
+<tr class="odd">
 <td style="text-align: left;">totalpopulation</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
@@ -1221,7 +1247,7 @@ div.csl-indent {
 <td style="text-align: right;">37892.00</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">area_sq_miles</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
@@ -1234,7 +1260,7 @@ div.csl-indent {
 <td style="text-align: right;">85554.74</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">count_ntm_stops</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
@@ -1247,7 +1273,7 @@ div.csl-indent {
 <td style="text-align: right;">195.00</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">stops_per_capita</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
@@ -1260,7 +1286,7 @@ div.csl-indent {
 <td style="text-align: right;">12461.54</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">stops_per_sqmile</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
@@ -1273,33 +1299,33 @@ div.csl-indent {
 <td style="text-align: right;">689.33</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">rate_65_plus</td>
 <td style="text-align: right;">37421</td>
 <td style="text-align: right;">0.41</td>
-<td style="text-align: right;">0.18</td>
-<td style="text-align: right;">0.08</td>
+<td style="text-align: right;">17.81</td>
+<td style="text-align: right;">7.77</td>
 <td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.13</td>
-<td style="text-align: right;">0.17</td>
-<td style="text-align: right;">0.22</td>
-<td style="text-align: right;">0.90</td>
+<td style="text-align: right;">12.86</td>
+<td style="text-align: right;">17.46</td>
+<td style="text-align: right;">21.53</td>
+<td style="text-align: right;">90.04</td>
 <td style="text-align: left;">▇▆▁▁▁</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">rate_85_plus</td>
 <td style="text-align: right;">37421</td>
 <td style="text-align: right;">0.41</td>
-<td style="text-align: right;">0.02</td>
-<td style="text-align: right;">0.02</td>
+<td style="text-align: right;">2.00</td>
+<td style="text-align: right;">1.61</td>
 <td style="text-align: right;">0.00</td>
-<td style="text-align: right;">0.01</td>
-<td style="text-align: right;">0.02</td>
-<td style="text-align: right;">0.02</td>
-<td style="text-align: right;">0.48</td>
+<td style="text-align: right;">1.10</td>
+<td style="text-align: right;">1.68</td>
+<td style="text-align: right;">2.45</td>
+<td style="text-align: right;">48.15</td>
 <td style="text-align: left;">▇▁▁▁▁</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">density_per_sqmi</td>
 <td style="text-align: right;">0</td>
 <td style="text-align: right;">1.00</td>
@@ -1474,7 +1500,6 @@ div.csl-indent {
 </div>
 </div>
 </div>
-<p>There are no columns with pair-wise correlations above the threshold .75, so we don’t need to filter out any highly correlated predictor variables.</p>
 </section>
 </section>
 <section id="analysis" class="level2">
@@ -1488,51 +1513,59 @@ lm(formula = isolation ~ ., data = df_predictors)
 
 Residuals:
      Min       1Q   Median       3Q      Max 
--11.0938  -1.8674  -0.0829   1.7961  14.0631 
+-11.3766  -1.8560  -0.0775   1.7917  13.9171 
 
 Coefficients:
                    Estimate Std. Error t value Pr(&gt;|t|)    
-(Intercept)       3.894e+01  9.811e-02 396.936  &lt; 2e-16 ***
-totalpopulation  -1.975e-04  1.346e-05 -14.671  &lt; 2e-16 ***
-area_sq_miles     1.812e-04  7.611e-05   2.381 0.017261 *  
-count_ntm_stops   4.320e-02  3.081e-03  14.020  &lt; 2e-16 ***
-stops_per_capita -1.376e-03  1.182e-03  -1.164 0.244303    
-stops_per_sqmile  5.936e-03  1.752e-03   3.387 0.000708 ***
-ruralitySuburban  6.519e-01  6.292e-02  10.362  &lt; 2e-16 ***
-ruralityRural     7.232e-01  6.139e-02  11.782  &lt; 2e-16 ***
-rate_65_plus     -3.221e+01  4.692e-01 -68.661  &lt; 2e-16 ***
-rate_85_plus      2.233e+01  2.039e+00  10.953  &lt; 2e-16 ***
-density_per_sqmi  1.199e-04  4.655e-06  25.751  &lt; 2e-16 ***
+(Intercept)       3.881e+01  1.010e-01 384.423  &lt; 2e-16 ***
+totalpop18plus   -5.566e-04  9.934e-05  -5.602 2.14e-08 ***
+totalpopulation   2.276e-04  7.706e-05   2.954 0.003140 ** 
+area_sq_miles     1.655e-04  7.610e-05   2.175 0.029638 *  
+count_ntm_stops   4.478e-02  3.092e-03  14.484  &lt; 2e-16 ***
+stops_per_capita -1.409e-03  1.181e-03  -1.193 0.232970    
+stops_per_sqmile  6.128e-03  1.751e-03   3.499 0.000468 ***
+ruralitySuburban  6.503e-01  6.287e-02  10.345  &lt; 2e-16 ***
+ruralityRural     7.016e-01  6.146e-02  11.416  &lt; 2e-16 ***
+rate_65_plus     -3.130e-01  4.960e-03 -63.109  &lt; 2e-16 ***
+rate_85_plus      2.191e-01  2.039e-02  10.749  &lt; 2e-16 ***
+density_per_sqmi  1.232e-04  4.688e-06  26.270  &lt; 2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
-Residual standard error: 2.761 on 18999 degrees of freedom
+Residual standard error: 2.759 on 18998 degrees of freedom
   (44021 observations deleted due to missingness)
-Multiple R-squared:  0.4435,    Adjusted R-squared:  0.4432 
-F-statistic:  1514 on 10 and 18999 DF,  p-value: &lt; 2.2e-16</code></pre>
+Multiple R-squared:  0.4444,    Adjusted R-squared:  0.4441 
+F-statistic:  1381 on 11 and 18998 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 <ul>
-<li><p><code>totalpopulation</code>: For each additional person in a census tract, the probability who report feeling socially isolated <strong>decreases by 0.02%</strong>.</p></li>
+<li><p><code>totalpop18plus</code>: For each additional person aged 18 and older in a census tract, the probability who report feeling socially isolated <strong>decreases by 0.06%</strong>.</p></li>
+<li><p><code>totalpopulation</code>: For each additional person in a census tract, the probability who report feeling socially isolated <strong>increases by 0.02%</strong>.</p></li>
 <li><p><code>area_sq_miles</code>: For each additional square mile in a census tract, the probability who report feeling socially isolated <strong>increases by 0.02%</strong>.</p></li>
-<li><p><code>count_ntm_stops</code>: For each additional transit stop in a census tract, the probability who report feeling socially isolated <strong>increases by 4.32%</strong>.</p></li>
-<li><p><code>stops_per_sqmile</code>: For each additional stop per square mile, the probability who report feeling socially isolated in a census tract <strong>increases by 0.59%</strong>.</p></li>
-<li><p><code>ruralitySuburban</code>: If the census tract is considered suburban, the probability who report feeling socially isolated <strong>increases by 65.19%</strong> compared to an urban tract.</p></li>
-<li><p><code>ruralityRural</code>: If the census tract is considered rural, the probability who report feeling socially isolated <strong>increases by 72.32%</strong> compared to an urban tract.</p></li>
-<li><p><code>rate_65_plus</code>: For each additional percentage point of the population aged 65 and older, the probability who report feeling socially isolated in a tract <strong>decreases by 3221.33%</strong>.</p></li>
-<li><p><code>rate_85_plus</code>: For each additional percentage point of the population aged 85 and older, the probability who report feeling socially isolated in a tract <strong>increases by 2233.38%</strong>.</p></li>
+<li><p><code>count_ntm_stops</code>: For each additional transit stop in a census tract, the probability who report feeling socially isolated <strong>increases by 4.48%</strong>.</p></li>
+<li><p><code>stops_per_sqmile</code>: For each additional stop per square mile, the probability who report feeling socially isolated in a census tract <strong>increases by 0.61%</strong>.</p></li>
+<li><p><code>ruralitySuburban</code>: If the census tract is considered suburban, the probability who report feeling socially isolated <strong>increases by 65.03%</strong> compared to an urban tract.</p></li>
+<li><p><code>ruralityRural</code>: If the census tract is considered rural, the probability who report feeling socially isolated <strong>increases by 70.16%</strong> compared to an urban tract.</p></li>
+<li><p><code>rate_65_plus</code>: For each additional percentage point of the population aged 65 and older, the probability who report feeling socially isolated in a tract <strong>decreases by 31.3%</strong>.</p></li>
+<li><p><code>rate_85_plus</code>: For each additional percentage point of the population aged 85 and older, the probability who report feeling socially isolated in a tract <strong>increases by 21.91%</strong>.</p></li>
 <li><p><code>density_per_sqmi</code>: For each additional person per square mile, the probability who report feeling socially isolated in a tract <strong>increases by 0.01%</strong>.</p></li>
 <li><p><code>stops_per_capita</code> was <strong>insignificant</strong>, indicating that the number of transit stops per capita does not significantly affect feelings of social isolation in this model.</p></li>
 </ul>
-<p>The model’s R-squared value indicates that approximately 44.35% of the variance in feelings of social isolation can be explained by the model.</p>
+<p>The model’s R-squared value indicates that approximately 44.44% of the variance in feelings of social isolation can be explained by the model.</p>
 <p>Next, we try bucketing the data by RUCA code. We will use <code>rurality</code> that is a factor with three levels: urban, suburban, and rural.</p>
+<p>RICHIE to do</p>
+<p>ADD FIGURE of results</p>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>ADD CONLUSION</p>
 </section>
 <section id="data-dictionary" class="level2">
 <h2 class="anchored" data-anchor-id="data-dictionary">Data Dictionary</h2>
 <dl>
 <dt><code>isolation</code></dt>
 <dd>
-<p>Probability among adults who report always/usually/sometimes feeling socially isolated. Source: CDC PLACES.</p>
+<p>The estimated age-adjusted prevalence of feeling socially isolated among adults aged &gt;= 18 years (%) in 2022. Probability among adults who report always/usually/sometimes feeling socially isolated. Source: CDC PLACES.</p>
 </dd>
 <dt><code>totalpopulation</code></dt>
 <dd>

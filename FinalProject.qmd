@@ -40,11 +40,15 @@ cdc_places <- CDCPLACES::get_places(
     age_adjust = TRUE
 ) |>
     clean_names() |>
-    mutate(totalpopulation = as.numeric(totalpopulation)) |>
+    mutate(
+        totalpop18plus = as.numeric(totalpop18plus),
+        totalpopulation = as.numeric(totalpopulation)
+    ) |>
     select(
         stateabbr,
         locationname,
         data_value,
+        totalpop18plus,
         totalpopulation
     ) # Consider pulling geolocation variable if mapping
 
@@ -98,8 +102,8 @@ age <- read_csv(
 ) |>
     clean_names() |>
     mutate(
-        rate_65_plus = (x65_to_84_years_2020_population_percent + x85_to_99_years_2020_population_percent + x100_years_and_over_2020_population_percent) / 100,
-        rate_85_plus = (x85_to_99_years_2020_population_percent + x100_years_and_over_2020_population_percent) / 100,
+        rate_65_plus = (x65_to_84_years_2020_population_percent + x85_to_99_years_2020_population_percent + x100_years_and_over_2020_population_percent),
+        rate_85_plus = (x85_to_99_years_2020_population_percent + x100_years_and_over_2020_population_percent),
         totalpopulation = all_ages_2020_population_number |> as.numeric()
     ) |>
     rename(state_name = state) |>
@@ -138,7 +142,6 @@ data <- cdc_places |>
     mutate(
         state_abbr = state_abbr |> as.factor(), # Ensure state abbreviation is a factor
         fips = fips |> as.factor(), # Ensure FIPS code is a factor
-        totalpopulation = as.numeric(totalpopulation), # Convert total population to numeric
         rurality = factor(rurality, levels = c("Urban", "Suburban", "Rural")), # Reorder rurality factor levels
         ruca = case_when(
             ruca == 99 ~ NA, # Replace RUCA code 99 (not coded) with NA
@@ -359,6 +362,7 @@ renamed_df <- df_nonmiss |>
         "RUCA" = ruca,
         "Census Tract Area (Square Miles)" = area_sq_miles,
         "Total Population" = totalpopulation,
+        "Total Adult Population (18+)" = totalpop18plus,
         "Percent 65 and up" = rate_65_plus,
         "Percent 85 and up" = rate_85_plus
     )
@@ -370,21 +374,10 @@ cor_matrix <- renamed_df |>
 corrplot(
     cor_matrix,
     method = "circle",
-    type = "upper",
     tl.srt = 20,
-    tl.cex = 0.7, # Reduce font size of labels
+    tl.cex = 0.7,
     order = "hclust"
-) # Fill in bottom half
-```
-
-There are no columns with pair-wise correlations above the threshold .75, so we don't need to filter out any highly correlated predictor variables.
-
-```{r}
-#| label: find-correlations
-#| echo: false
-#| include: false
-
-findCorrelation(cor(df_nonmiss |> select_if(is.numeric)), cutoff = .75)
+)
 ```
 
 ## Analysis
@@ -406,6 +399,8 @@ lm_model <- lm(
 )
 summary(lm_model)
 ```
+
+-   `totalpop18plus`: For each additional person aged 18 and older in a census tract, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["totalpop18plus"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["totalpop18plus"] * 100, 2))`%**.
 
 -   `totalpopulation`: For each additional person in a census tract, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["totalpopulation"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["totalpopulation"] * 100, 2))`%**.
 
@@ -447,7 +442,7 @@ ADD CONLUSION
 
 `isolation`
 
-:   Probability among adults who report always/usually/sometimes feeling socially isolated. Source: CDC PLACES.
+:   The estimated age-adjusted prevalence of feeling socially isolated among adults aged >= 18 years (%) in 2022. Probability among adults who report always/usually/sometimes feeling socially isolated. Source: CDC PLACES.
 
 `totalpopulation`
 
