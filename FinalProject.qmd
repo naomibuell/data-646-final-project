@@ -394,7 +394,7 @@ First, we will fit a linear model to the data for simplicity. We bucket the data
 df_predictors <- df_nonmiss |>
     select(-c(state_abbr, fips, ruca))
 
-rurality_levels <- c("Urban", "Suburban", "Rural", NA)
+rurality_levels <- c("Urban", "Suburban", "Rural")
 model_coefficients <- list()
 
 for (rural_level in rurality_levels) {
@@ -408,7 +408,7 @@ for (rural_level in rurality_levels) {
       -rurality,
       -count_ntm_stops,
       -stops_per_sqmile,
-      #-stops_per_capita,
+      -stops_per_capita,
       -totalpopulation,
       -totalpop18plus
     )
