@@ -27,6 +27,7 @@ library(corrplot)
 library(tidycensus)
 library(caret)
 library(broom)
+library(broom)
 ```
 
 Load [PLACES: Local Data for Better Health, Census Tract Data 2024 release](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Census-Tract-D/cwsq-ngmh/about_data) using [@CDCPLACES] [@Greenlund2022]. This is 2022 data.
@@ -398,14 +399,18 @@ rurality_levels <- c("Urban", "Suburban", "Rural", NA)
 model_coefficients <- list()
 
 for (rural_level in rurality_levels) {
-    filtered_df <- df_predictors %>%
-        filter(!is.na(rate_65_plus) & !is.na(rate_85_plus)) %>%
-        filter(rurality == rural_level) %>%
-        select(
-            #-rate_65_plus,
-            -rate_85_plus,
-            -rurality
-        )
+  filtered_df <- df_predictors %>%
+    filter(!is.na(rate_65_plus) & !is.na(rate_85_plus)) %>%
+    filter(rurality == rural_level) %>%
+    mutate(rate_18_plus = totalpop18plus / totalpopulation)
+    select(
+      #-rate_65_plus,
+      -rate_85_plus,
+      -rurality,
+      -count_ntm_stops,
+      -totalpopulation,
+      -totalpop18plus
+    )
 
     # Check if there are enough rows to run the model
     if (nrow(filtered_df) > 1) {
