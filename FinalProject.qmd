@@ -383,9 +383,7 @@ corrplot(
 
 ## Analysis
 
-### Simple linear model
-
-First, we will fit a linear model to the data for simplicity.
+First, we will fit a linear model to the data for simplicity. We bucket the data by  `rurality` that is a factor with three levels: urban, suburban, and rural.
 
 ```{r}
 #| label: fit-a-linear-model
@@ -394,66 +392,41 @@ First, we will fit a linear model to the data for simplicity.
 
 # Removing state_abbr, fips, and ruca from the predictors
 df_predictors <- df_nonmiss |>
-    # mutate(rate_18_plus = totalpop18plus / totalpopulation) |> # We don't need a rate of 18+ since have the total adult populatin and another age variable
-    select(-c(
-        rate_85_plus, # Just using rate_65_plus for now
-        count_ntm_stops, # Using stops_per_capita instead
-        stops_per_sqmile, # Using stops_per_capita instead
-        totalpopulation, # Using adult population instead because this aligns with the denominator used for the rate of social isolation
-        # totalpop18plus, # Keeping adult population as a predictor for now
-        state_abbr, # Removing state abbreviation for modeling
-        fips, # Removing FIPS code for modeling
-        ruca
-    )) # Removing RUCA code for modeling
-
-lm_model <- lm(
-    isolation ~ .,
-    data = df_predictors
-)
-summary(lm_model)
-```
-
--   `totalpop18plus`: For each additional person aged 18 and older in a census tract, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["totalpop18plus"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["totalpop18plus"] * 100, 2))`%**.
-
--   `area_sq_miles`: Insignificant, indicating that the area of a census tract does not significantly affect feelings of social isolation in this model.
-
--   `stops_per_capita`: For each additional stop per 1000 people in a census tract, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["stops_per_capita"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["stops_per_capita"] * 100, 2))`%**.
-
--   `ruralitySuburban`: If the census tract is considered suburban, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["ruralitySuburban"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["ruralitySuburban"] * 100, 2))`%** compared to an urban tract.
-
--   `ruralityRural`: If the census tract is considered rural, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["ruralityRural"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["ruralityRural"] * 100, 2))`%** compared to an urban tract.
-
--   `rate_65_plus`: For each additional percentage point of the population aged 65 and older, the probability who report feeling socially isolated in a tract **`r ifelse(lm_model$coefficients["rate_65_plus"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["rate_65_plus"] * 100, 2))`%**.
-
--   `density_per_sqmi`: For each additional person per square mile, the probability who report feeling socially isolated in a tract **`r ifelse(lm_model$coefficients["density_per_sqmi"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["density_per_sqmi"] * 100, 2))`%**.
-
-The model's R-squared value indicates that approximately `r round(summary(lm_model)$r.squared * 100, 2)`% of the variance in feelings of social isolation can be explained by the model.
-
-Next, we bucket the data by `rurality` that is a factor with three levels: urban, suburban, and rural.
-
-```{r}
-#| label: lm-buckets
-#| echo: false
-#| warning: false
+    select(-c(state_abbr, fips, ruca))
 
 rurality_levels <- c("Urban", "Suburban", "Rural")
 model_coefficients <- list()
 model_r_squared <- list()
+unscaled_model_coefficients <- list()
 
 for (rural_level in rurality_levels) {
-    filtered_df <- df_predictors |>
-        # filter(!is.na(rate_65_plus) |> # Do we need to filter out NAs before running a linear model?
-        filter(rurality == rural_level) |>
-        select(-rurality) # Remove the rurality column for modeling
+  filtered_df <- df_predictors %>%
+    filter(!is.na(rate_65_plus) & !is.na(rate_85_plus)) %>%
+    filter(rurality == rural_level) %>%
+    mutate(rate_18_plus = totalpop18plus / totalpopulation) |>
+    select(
+      #-rate_65_plus,
+      -rate_85_plus,
+      -rurality,
+      -count_ntm_stops,
+      -stops_per_sqmile,
+      #-stops_per_capita,
+      -totalpopulation,
+      -totalpop18plus
+    )
 
     # Check if there are enough rows to run the model
     if (nrow(filtered_df) > 1) {
         # Separate the outcome variable and predictors
         isolation_col <- filtered_df$isolation
-        predictor_cols <- filtered_df |> select(-isolation)
+        predictor_cols_unscaled <- filtered_df %>% select(-isolation) # Keep unscaled for parameters
 
+        # Store scaling parameters
+        original_means <- colMeans(predictor_cols_unscaled)
+        original_sds <- apply(predictor_cols_unscaled, 2, sd)
+        
         # Center and scale the predictor variables
-        scaled_predictors <- scale(predictor_cols, center = TRUE, scale = TRUE)
+        scaled_predictors <- scale(predictor_cols_unscaled, center = TRUE, scale = TRUE)
         scaled_predictors_df <- as.data.frame(scaled_predictors)
 
         # Combine the scaled predictors with the outcome variable
@@ -466,8 +439,12 @@ for (rural_level in rurality_levels) {
         )
 
         current_rurality <- as.character(rural_level)
-        model_coefficients[[current_rurality]] <- tidy(lm_model) |>
-            select(term, estimate, p.value) |>
+
+        scaled_coef_df <- tidy(lm_model) %>%
+            select(term, estimate, p.value)
+
+        model_coefficients[[current_rurality]] <- tidy(lm_model) %>%
+            select(term, estimate, p.value) %>%
             rename(
                 setNames("estimate", !!current_rurality),
                 setNames("p.value", paste0(!!current_rurality, "_p"))
@@ -476,6 +453,28 @@ for (rural_level in rurality_levels) {
         # Extract R-squared
         model_summary <- summary(lm_model)
         model_r_squared[[current_rurality]] <- model_summary$r.squared
+
+        # Unscale and uncenter coefficients
+        unscaled_coefs <- numeric(nrow(scaled_coef_df))
+        names(unscaled_coefs) <- scaled_coef_df$term
+        unscaled_intercept <- scaled_coef_df$estimate[scaled_coef_df$term == "(Intercept)"]
+
+        for (term in scaled_coef_df$term) {
+            if (term != "(Intercept)") {
+                original_var_name <- gsub("scaled_", "", term) # Adjust if your scaling adds prefixes
+                if (original_var_name %in% names(original_sds)) {
+                    unscaled_coefs[term] <- scaled_coef_df$estimate[scaled_coef_df$term == term] / original_sds[original_var_name]
+                    unscaled_intercept <- unscaled_intercept - (unscaled_coefs[term] * original_means[original_var_name])
+                } else {
+                    unscaled_coefs[term] <- NA
+                }
+            } else {
+                unscaled_coefs[term] <- unscaled_intercept
+            }
+        }
+
+        unscaled_model_coefficients[[current_rurality]] <- enframe(unscaled_coefs, name = "term", value = paste0("unscaled_", current_rurality))
+
     } else {
         current_rurality <- as.character(rural_level)
         empty_df <- data.frame(term = character(0), estimate = numeric(0), p.value = numeric(0))
@@ -491,7 +490,7 @@ for (rural_level in rurality_levels) {
 # Merge the coefficient estimates and p-values into a single dataframe
 compiled_coefficients <- model_coefficients[[1]]
 for (i in 2:length(model_coefficients)) {
-    compiled_coefficients <- compiled_coefficients |>
+    compiled_coefficients <- compiled_coefficients %>%
         full_join(model_coefficients[[i]], by = "term")
 }
 
@@ -499,49 +498,43 @@ print(compiled_coefficients)
 
 print("R-squared of the models by rurality:")
 print(model_r_squared)
+
+# Merge the unscaled coefficients into a single dataframe
+compiled_unscaled_coefficients <- unscaled_model_coefficients[[1]]
+for (i in 2:length(unscaled_model_coefficients)) {
+    compiled_unscaled_coefficients <- compiled_unscaled_coefficients %>%
+        full_join(unscaled_model_coefficients[[i]], by = "term")
+}
+
+print("Unscaled and Uncentered Coefficients:")
+print(compiled_unscaled_coefficients)
 ```
 
-For the rural model,
+UPDATE dynamic summary of coefficients below
 
--   The model's R-squared value indicates that approximately `r round(model_r_squared$Rural * 100, 2)`% of the variance in feelings of social isolation can be explained by the model.
+-   `totalpop18plus`: For each additional person aged 18 and older in a census tract, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["totalpop18plus"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["totalpop18plus"] * 100, 2))`%**.
 
--   `totalpop18plus`: For each standard deviation increase in adult population in a census tract, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Rural[compiled_coefficients$term == "totalpop18plus"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Rural[compiled_coefficients$term == "totalpop18plus"], 2))` standard deviations** (p = `r round(compiled_coefficients$Rural_p[compiled_coefficients$term == "totalpop18plus"], 3)`).
+-   `totalpopulation`: For each additional person in a census tract, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["totalpopulation"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["totalpopulation"] * 100, 2))`%**.
 
--   `area_sq_miles`: For each standard deviation increase in area, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Rural[compiled_coefficients$term == "area_sq_miles"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Rural[compiled_coefficients$term == "area_sq_miles"], 2))` standard deviations** (p = `r round(compiled_coefficients$Rural_p[compiled_coefficients$term == "area_sq_miles"], 3)`).
+-   `area_sq_miles`: For each additional square mile in a census tract, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["area_sq_miles"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["area_sq_miles"] * 100, 2))`%**.
 
--   `rate_65_plus`: For each standard deviation increase in population aged 65 and older, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Rural[compiled_coefficients$term == "rate_65_plus"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Rural[compiled_coefficients$term == "rate_65_plus"], 2))` standard deviations** (p = `r round(compiled_coefficients$Rural_p[compiled_coefficients$term == "rate_65_plus"], 3)`).
+-   `count_ntm_stops`: For each additional transit stop in a census tract, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["count_ntm_stops"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["count_ntm_stops"] * 100, 2))`%**.
 
--   `density_per_sqmi`: For each standard deviation increase in population density, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Rural[compiled_coefficients$term == "density_per_sqmi"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Rural[compiled_coefficients$term == "density_per_sqmi"], 2))` standard deviations** (p = `r round(compiled_coefficients$Rural_p[compiled_coefficients$term == "density_per_sqmi"], 3)`).
+-   `stops_per_sqmile`: For each additional stop per square mile, the probability who report feeling socially isolated in a census tract **`r ifelse(lm_model$coefficients["stops_per_sqmile"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["stops_per_sqmile"] * 100, 2))`%**.
 
--   `stops_per_capita`: For each standard deviation increase in transit stops per capita, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Rural[compiled_coefficients$term == "stops_per_capita"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Rural[compiled_coefficients$term == "stops_per_capita"], 2))` standard deviations** (p = `r round(compiled_coefficients$Rural_p[compiled_coefficients$term == "stops_per_capita"], 3)`).
+-   `ruralitySuburban`: If the census tract is considered suburban, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["ruralitySuburban"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["ruralitySuburban"] * 100, 2))`%** compared to an urban tract.
 
-For the suburban model,
+-   `ruralityRural`: If the census tract is considered rural, the probability who report feeling socially isolated **`r ifelse(lm_model$coefficients["ruralityRural"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["ruralityRural"] * 100, 2))`%** compared to an urban tract.
 
--   The model's R-squared value indicates that approximately `r round(model_r_squared$Suburban * 100, 2)`% of the variance in feelings of social isolation can be explained by the model.
+-   `rate_65_plus`: For each additional percentage point of the population aged 65 and older, the probability who report feeling socially isolated in a tract **`r ifelse(lm_model$coefficients["rate_65_plus"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["rate_65_plus"] * 100, 2))`%**.
 
--   `totalpop18plus`: For each standard deviation increase in adult population in a census tract, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Suburban[compiled_coefficients$term == "totalpop18plus"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Suburban[compiled_coefficients$term == "totalpop18plus"], 2))` standard deviations** (p = `r round(compiled_coefficients$Suburban_p[compiled_coefficients$term == "totalpop18plus"], 3)`).
+-   `rate_85_plus`: For each additional percentage point of the population aged 85 and older, the probability who report feeling socially isolated in a tract **`r ifelse(lm_model$coefficients["rate_85_plus"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["rate_85_plus"] * 100, 2))`%**.
 
--   `area_sq_miles`: For each standard deviation increase in area, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Suburban[compiled_coefficients$term == "area_sq_miles"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Suburban[compiled_coefficients$term == "area_sq_miles"], 2))` standard deviations** (p = `r round(compiled_coefficients$Suburban_p[compiled_coefficients$term == "area_sq_miles"], 3)`).
+-   `density_per_sqmi`: For each additional person per square mile, the probability who report feeling socially isolated in a tract **`r ifelse(lm_model$coefficients["density_per_sqmi"] < 0, "decreases", "increases")` by `r abs(round(lm_model$coefficients["density_per_sqmi"] * 100, 2))`%**.
 
--   `rate_65_plus`: For each standard deviation increase in population aged 65 and older, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Suburban[compiled_coefficients$term == "rate_65_plus"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Suburban[compiled_coefficients$term == "rate_65_plus"], 2))` standard deviations** (p = `r round(compiled_coefficients$Suburban_p[compiled_coefficients$term == "rate_65_plus"], 3)`).
+-   `stops_per_capita` was **insignificant**, indicating that the number of transit stops per capita does not significantly affect feelings of social isolation in this model.
 
--   `density_per_sqmi`: For each standard deviation increase in population density, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Suburban[compiled_coefficients$term == "density_per_sqmi"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Suburban[compiled_coefficients$term == "density_per_sqmi"], 2))` standard deviations** (p = `r round(compiled_coefficients$Suburban_p[compiled_coefficients$term == "density_per_sqmi"], 3)`).
-
--   `stops_per_capita`: For each standard deviation increase in transit stops per capita, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Suburban[compiled_coefficients$term == "stops_per_capita"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Suburban[compiled_coefficients$term == "stops_per_capita"], 2))` standard deviations** (p = `r round(compiled_coefficients$Suburban_p[compiled_coefficients$term == "stops_per_capita"], 3)`).
-
-For the urban model,
-
--   The model's R-squared value indicates that approximately `r round(model_r_squared$Urban * 100, 2)`% of the variance in feelings of social isolation can be explained by the model.
-
--   `totalpop18plus`: For each standard deviation increase in adult population in a census tract, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Urban[compiled_coefficients$term == "totalpop18plus"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Urban[compiled_coefficients$term == "totalpop18plus"], 2))` standard deviations** (p = `r round(compiled_coefficients$Urban_p[compiled_coefficients$term == "totalpop18plus"], 3)`).
-
--   `area_sq_miles`: For each standard deviation increase in area, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Urban[compiled_coefficients$term == "area_sq_miles"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Urban[compiled_coefficients$term == "area_sq_miles"], 2))` standard deviations** (p = `r round(compiled_coefficients$Urban_p[compiled_coefficients$term == "area_sq_miles"], 3)`).
-
--   `rate_65_plus`: For each standard deviation increase in population aged 65 and older, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Urban[compiled_coefficients$term == "rate_65_plus"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Urban[compiled_coefficients$term == "rate_65_plus"], 2))` standard deviations** (p = `r round(compiled_coefficients$Urban_p[compiled_coefficients$term == "rate_65_plus"], 3)`).
-
--   `density_per_sqmi`: For each standard deviation increase in population density, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Urban[compiled_coefficients$term == "density_per_sqmi"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Urban[compiled_coefficients$term == "density_per_sqmi"], 2))` standard deviations** (p = `r round(compiled_coefficients$Urban_p[compiled_coefficients$term == "density_per_sqmi"], 3)`).
-
--   `stops_per_capita`: For each standard deviation increase in transit stops per capita, the probability who report feeling socially isolated **`r ifelse(compiled_coefficients$Urban[compiled_coefficients$term == "stops_per_capita"] < 0, "decreases", "increases")` by `r abs(round(compiled_coefficients$Urban[compiled_coefficients$term == "stops_per_capita"], 2))` standard deviations** (p = `r round(compiled_coefficients$Urban_p[compiled_coefficients$term == "stops_per_capita"], 3)`).
+The model's R-squared value indicates that approximately `r round(summary(lm_model)$r.squared * 100, 2)`% of the variance in feelings of social isolation can be explained by the model.
 
 ADD FIGURE of results
 
@@ -553,7 +546,7 @@ ADD CONLUSION
 
 `isolation`
 
-:   The estimated age-adjusted prevalence of feeling socially isolated among adults aged \>= 18 years (%) in 2022. Probability among adults who report always/usually/sometimes feeling socially isolated. Source: CDC PLACES.
+:   The estimated age-adjusted prevalence of feeling socially isolated among adults aged >= 18 years (%) in 2022. Probability among adults who report always/usually/sometimes feeling socially isolated. Source: CDC PLACES.
 
 `totalpopulation`
 
@@ -580,7 +573,7 @@ ADD CONLUSION
 :   Secondary RUCA codes, 2010. Source: 2010 USDA-ERS.
 
     | **Code** | **Classification description** |
-    |------------------------|------------------------------------------------|
+    |-----------------------|-------------------------------------------------|
     | 1 Metropolitan area core: primary flow within an urbanized area (UA) |  |
     | 1.0 | No additional code |
     | 1.1 | Secondary flow 30% to 50% to a larger UA |
