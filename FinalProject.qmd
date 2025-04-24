@@ -396,6 +396,7 @@ df_predictors <- df_nonmiss |>
 
 rurality_levels <- c("Urban", "Suburban", "Rural")
 model_coefficients <- list()
+model_r_squared <- list()
 
 for (rural_level in rurality_levels) {
   filtered_df <- df_predictors %>%
@@ -439,6 +440,10 @@ for (rural_level in rurality_levels) {
                 setNames("estimate", !!current_rurality),
                 setNames("p.value", paste0(!!current_rurality, "_p"))
             )
+
+        # Extract R-squared
+        model_summary <- summary(lm_model)
+        model_r_squared[[current_rurality]] <- model_summary$r.squared
     } else {
         current_rurality <- as.character(rural_level)
         empty_df <- data.frame(term = character(0), estimate = numeric(0), p.value = numeric(0))
@@ -459,6 +464,9 @@ for (i in 2:length(model_coefficients)) {
 }
 
 print(compiled_coefficients)
+
+print("R-squared of the models by rurality:")
+print(model_r_squared)
 ```
 
 UPDATE dynamic summary of coefficients below
