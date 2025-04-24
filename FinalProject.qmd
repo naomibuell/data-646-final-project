@@ -426,10 +426,68 @@ The model's R-squared value indicates that approximately `r round(summary(lm_mod
 
 Next, we try bucketing the data by RUCA code. We will use `rurality` that is a factor with three levels: urban, suburban, and rural.
 
-RICHIE to do 
+------------------------------------------------------------------------
+
+WHAT RICHIE DID:
+
+------------------------------------------------------------------------
 
 ```{r}
-#| label: lm-rurality
+rurality_levels <- c("Urban", "Suburban", "Rural", NA)
+model_coefficients <- list()
+
+for (rural_level in rurality_levels) {
+  filtered_df <- df_predictors %>%
+    filter(!is.na(rate_65_plus) & !is.na(rate_85_plus)) %>%
+    filter(rurality == rural_level) %>%
+    select(
+      #-rate_65_plus,
+      -rate_85_plus,
+      -rurality
+    )
+
+  # Check if there are enough rows to run the model
+  if (nrow(filtered_df) > 1) {
+    # Separate the outcome variable and predictors
+    isolation_col <- filtered_df$isolation
+    predictor_cols <- filtered_df %>% select(-isolation)
+
+    # Center and scale the predictor variables
+    scaled_predictors <- scale(predictor_cols, center = TRUE, scale = TRUE)
+    scaled_predictors_df <- as.data.frame(scaled_predictors)
+
+    # Combine the scaled predictors with the outcome variable
+    model_data <- cbind(isolation = isolation_col, scaled_predictors_df)
+    model_data <- as.data.frame(model_data)
+
+    lm_model <- lm(
+      isolation ~ .,
+      data = model_data
+    )
+
+    current_rurality <- as.character(rural_level)
+    model_coefficients[[current_rurality]] <- tidy(lm_model) %>%
+      select(term, estimate, p.value) %>%
+      rename(setNames("estimate", !!current_rurality),
+             setNames("p.value", paste0(!!current_rurality, "_p")))
+  } else {
+    current_rurality <- as.character(rural_level)
+    empty_df <- data.frame(term = character(0), estimate = numeric(0), p.value = numeric(0))
+    model_coefficients[[current_rurality]] <- rename(empty_df,
+                                                     setNames("estimate", !!current_rurality),
+                                                     setNames("p.value", paste0(!!current_rurality, "_p")))
+    warning(paste("Not enough data points for rurality level:", rural_level, ". Skipping model."))
+  }
+}
+
+# Merge the coefficient estimates and p-values into a single dataframe
+compiled_coefficients <- model_coefficients[[1]]
+for (i in 2:length(model_coefficients)) {
+  compiled_coefficients <- compiled_coefficients %>%
+    full_join(model_coefficients[[i]], by = "term")
+}
+
+print(compiled_coefficients)
 ```
 
 ADD FIGURE of results
