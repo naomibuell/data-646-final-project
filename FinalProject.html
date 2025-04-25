@@ -1598,12 +1598,12 @@ F-statistic:   585 on 3 and 4434 DF,  p-value: &lt; 2.2e-16</code></pre>
 <p>For the rural model:</p>
 <ul>
 <li><p>n = 4438</p></li>
-<li><p>The model’s R-squared value indicates that approximately 28.36% of the variance in feelings of social isolation can be explained by the model. This is relatively low, compared to the models for urban and suburban populations.</p></li>
+<li><p>The model’s R-squared value indicates that approximately <strong>28.36%</strong> of the variance in feelings of social isolation can be explained by the model. This is relatively low, compared to the models for urban and suburban populations.</p></li>
 <li><p><code>stops_per_capita</code>: Controlling for age and population density, for each additional transit stop per 1,000 people in a census tract, the probability of adults feeling socially isolated <strong>increases by 52.46%</strong> (p = 0).</p></li>
 <li><p><code>rate_65_plus</code>: For each percentage point increase in population aged 65 and older, the probability of adults feeling socially isolated <strong>decreases by 26.6%</strong> (p = 0).</p></li>
 <li><p><code>density_per_sqmi</code>: For each additional person per square mile, the probability of adults feeling socially isolated <strong>increases by 0.02%</strong> (p = 0.07).</p></li>
 </ul>
-<p>For the suburban model,</p>
+<p>For the suburban model:</p>
 <ul>
 <li><p>n = 3007</p></li>
 <li><p>The model’s R-squared value indicates that approximately 30.65% of the variance in feelings of social isolation can be explained by the model.</p></li>
@@ -1611,11 +1611,11 @@ F-statistic:   585 on 3 and 4434 DF,  p-value: &lt; 2.2e-16</code></pre>
 <li><p><code>rate_65_plus</code>: For each percentage point increase in population aged 65 and older, the probability who report feeling socially isolated <strong>decreases by 28.32%</strong> (p = 0).</p></li>
 <li><p><code>density_per_sqmi</code>: For each additional person per square mile, the probability who report feeling socially isolated <strong>increases by 0.03%</strong> (p = 0).</p></li>
 </ul>
-<p>For the urban model,</p>
+<p>For the urban model:</p>
 <ul>
 <li><p>n = 10000</p></li>
 <li><p>The model’s R-squared value indicates that approximately 44.45% of the variance in feelings of social isolation can be explained by the model.</p></li>
-<li><p><code>stops_per_capita</code>: Controlling for age and population density, for each additional transit stop in a census tract stop per 1,000 people, the probability who report feeling socially isolated <strong>increases by 20.02%</strong> (p = 0).</p></li>
+<li><p><code>stops_per_capita</code>: Controlling for age and population density, for each additional transit stop per 1,000 people in a census tract, the probability who report feeling socially isolated <strong>increases by 20.02%</strong> (p = 0).</p></li>
 <li><p><code>rate_65_plus</code>: For each percentage point increase in population aged 65 and older, the probability who report feeling socially isolated <strong>decreases by 28.76%</strong> (p = 0).</p></li>
 <li><p><code>density_per_sqmi</code>: For each additional person per square mile, the probability who report feeling socially isolated <strong>increases by 0.02%</strong> (p = 0).</p></li>
 </ul>
@@ -1623,10 +1623,9 @@ F-statistic:   585 on 3 and 4434 DF,  p-value: &lt; 2.2e-16</code></pre>
 </section>
 <section id="conclusion" class="level2">
 <h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
-<p>Our preliminary analysis suggests that census tracts with greater access to public transportation, measured by the number of transit stops per capita—tend to report slightly lower levels of social isolation among adults. However, these trends are modest and vary widely across states and regions.</p>
-<p>Notably, missingness in rurality and age-related variables limits our ability to fully account for context and demographic confounders. The high proportion of missing values, especially for older adults (65+ and 85+), is a key limitation, given that social isolation disproportionately affects this group.</p>
-<p>Future analyses should consider imputation or inclusion of alternative demographic datasets to fill these gaps. Additional multivariate modeling (e.g., linear regression controlling for density, rurality, and age) is recommended to better isolate the relationship between transit access and isolation. Stratifying results by urbanicity may also clarify how this relationship differs between rural and urban contexts.</p>
-<p>Overall, this exploratory analysis supports continued investigation into the role of public transportation infrastructure in reducing social isolation, particularly as a lever for health equity in vulnerable populations.</p>
+<p>Our analysis suggests that census tracts with greater access to public transportation, measured by the number of transit stops per capita, tend to report slightly <em>higher</em> rates of feelings of social isolation among adults. This is counter to our hypothesis that tracts with more transit would have less social isolation.</p>
+<p>Stratifying results by urbanicity and controlling for the proportion of older adults ages 65 and up, as well as population density, transit had the largest effect in suburban areas, increasing rates of social isolation by 57%, and the smallest effect in rural areas…. [insert].</p>
+<p>Notably, missingness in rurality and age-related variables limits our ability to fully account for context and demographic confounders. The high proportion of missing values, especially for older adults (65+ and 85+), is a key limitation, given that social isolation disproportionately affects this group. Future analyses could consider imputation or inclusion of alternative demographic datasets to fill these gaps.</p>
 </section>
 <section id="data-dictionary" class="level2">
 <h2 class="anchored" data-anchor-id="data-dictionary">Data Dictionary</h2>
@@ -1676,8 +1675,8 @@ F-statistic:   585 on 3 and 4434 DF,  p-value: &lt; 2.2e-16</code></pre>
 <p>Secondary RUCA codes, 2010. Source: 2010 USDA-ERS.</p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 32%">
-<col style="width: 67%">
+<col style="width: 42%">
+<col style="width: 57%">
 </colgroup>
 <thead>
 <tr class="header">
