@@ -7,7 +7,11 @@ echo: false
 warning: false
 ---
 
+
+
 ## Load data
+
+
 
 ```{r}
 #| label: load packages
@@ -29,7 +33,11 @@ library(caret)
 library(broom)
 ```
 
+
+
 Load [PLACES: Local Data for Better Health, Census Tract Data 2024 release](https://data.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-Census-Tract-D/cwsq-ngmh/about_data) using [@CDCPLACES] [@Greenlund2022]. This is 2022 data.
+
+
 
 ```{r}
 #| label: get-cdc-data-with-CDCPLACES-package
@@ -57,7 +65,11 @@ cdc_places <- CDCPLACES::get_places(
 cdc_places |> head()
 ```
 
+
+
 Get [Public Transit Stops by Census Tract and ZIP Code Tabulation Area, United States, 2024](https://www.icpsr.umich.edu/web/ICPSR/studies/38605/datadocumentation#) from the National Neighborhood Data Archive (NaNDA) [@pan2023].
+
+
 
 ```{r}
 #| label: get-transit
@@ -70,7 +82,11 @@ transit <- read_table("data/ICPSR_38605/DS0003/38605-0003-Data.tsv") |>
 transit |> head()
 ```
 
+
+
 Get 2010 USDA-ERS Rural Urban Commuting Area (RUCA) Code classification scheme for Census tracts [@paykin2022].
+
+
 
 ```{r}
 #| label: get-RUCA
@@ -84,7 +100,11 @@ ruca <- read_csv(
 ruca |> head()
 ```
 
+
+
 Get age by census tract from the [2020 Census](https://www2.census.gov/programs-surveys/decennial/2020/data/demographic-and-housing-characteristics-file/age-group-visualization/tract-agegroup-2020.csv) [@census2023].
+
+
 
 ```{r}
 #| label: get-age
@@ -123,7 +143,11 @@ age <- read_csv(
 age |> head()
 ```
 
+
+
 Merge data. Since there are two columns for total population, we will use the one that is more complete, `totalpopulation`, from the CDC PLACES data. We will also rename the columns for clarity and consistency and generate a new variable, `density_per_sqmi`, which is the total population divided by the area in square miles.
+
+
 
 ```{r}
 #| label: merge-rename
@@ -158,9 +182,13 @@ data <- cdc_places |>
 data |> head()
 ```
 
+
+
 ## Exploratory data analysis and data preparation
 
 ### Missingness
+
+
 
 ```{r}
 #| label: skim
@@ -173,7 +201,11 @@ perc_missing_ruca <- sum(is.na(data$ruca)) / nrow(data) * 100 |> round()
 perc_missing_age <- sum(is.na(data$rate_65_plus)) / nrow(data) * 100 |> round()
 ```
 
+
+
 After filtering raw data for non-missing observations of our dependent variable, feelings of social isolation (`isolation`), we have `r nrow(data)` observations. County FIPs and state columns are 100% complete. A small number of counties in the data have missing transit data (`r perc_missing_transit` % missing) and some counties are not categorized into urban/suburban/rural categories (`r perc_missing_ruca` % missing). The age data has significant missingness (`r perc_missing_age` % missing).
+
+
 
 ```{r}
 #| label: perc-missing-by-state
@@ -188,9 +220,13 @@ present_states <- unique(data$state_abbr) # Unique, non-missing state abbreviati
 missing_states <- setdiff(all_states, present_states) # Identify missing states
 ```
 
+
+
 Note that all counties in Connecticut (CT) have missing transit data, which is why we will remove it from our analysis. The state abbreviation "CT" has `r sum(data$state_abbr == "CT")` rows with missing transit data. The following states are completely missing for the dataset (no CDC PLACES isolation data available): `r paste(missing_states, collapse = ", ")`.
 
 Revising data by filtering out missing information (dropped observations are documented in our paper).
+
+
 
 ```{r}
 #| label: remove-missings
@@ -209,11 +245,15 @@ skim(df_nonmiss) # Skim the non-missing dataframe
 # 36061014300 - CENTRAL PARK    - has a pop of 1
 ```
 
+
+
 Now there are `r nrow(df_nonmiss)` observations remaining after removing Connecticut and observations with missing rates of the elderly population, and there are no missing isolation or transit data. We note a few census tracts with very low populations (e.g., 1 person in central park or 17 people in the national mall) that may not be representative of the general population.
 
 ### Distribution
 
 Viewing the distribution of our modeling variables.
+
+
 
 ```{r}
 #| label: histograms
@@ -253,7 +293,11 @@ df_nonmiss |>
     skim()
 ```
 
+
+
 The column `stops_per_capita` has high outliers (e.g., 12k stops per capita observation when mean value is 2). We plot the data with outliers (defined as `Q3 + 1.5 * IQR`) removed.\*\*
+
+
 
 ```{r}
 #| label: remove-outliers
@@ -304,7 +348,11 @@ ggplot(
     scale_x_continuous(labels = scales::comma)
 ```
 
+
+
 We also investigate distributions of the centered and scaled data.
+
+
 
 ```{r}
 #| label: histograms-scaled
@@ -344,9 +392,13 @@ ggplot(
     labs(x = "Value", y = "% of Total")
 ```
 
+
+
 ### Correlation
 
 The figure below shows that feelings of social isolation among adults is most correlated with population density, number of stops, stops per square mile, and rurality. Positive correlation indicates that the denser an area is, the higher the rate of feeling social isolation, which is counterintuitive to our hypothesis. Social isolation is also positively associated with the count of transit stops (total count in census tract and adjusted per square mile)--also counterintuitive. Social isolation is slightly negatively correlated with rurality as measured by RUCA code, where a higher prevalence of this feeling tends to be associated with a more urban, less rural area, which is also inconsistent with our expectation.
+
+
 
 ```{r}
 #| label: corrplot
@@ -382,9 +434,13 @@ corrplot(
 )
 ```
 
+
+
 ## Analysis
 
 We will fit a linear model to the data for simplicity. We bucket the data by `rurality` that is a factor with three levels: urban, suburban, and rural.
+
+
 
 ```{r}
 #| label: fit-a-linear-model
@@ -518,6 +574,8 @@ count_rurality <- df_predictors |>
         perc = n() / nrow(df_predictors) * 100 |> round(2)
     )
 ```
+
+
 
 For the rural model:
 
