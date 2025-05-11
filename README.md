@@ -1,6 +1,6 @@
 # Investigating the Relationship Between Public Transit Access and Social Isolation
 
-### DATA 646 - Current Topics in Urban Sustainability: Complex Systems
+By Naomi Buell and Richie Rivera
 
 ## Introduction
 
