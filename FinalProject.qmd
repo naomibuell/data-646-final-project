@@ -219,10 +219,10 @@ Viewing the distribution of our modeling variables.
 #| warning: false
 df_hist <- df_nonmiss |>
     select(
-        #count_ntm_stops,
-        #stops_per_capita,
-        #density_per_sqmi,
-        #isolation,
+        # count_ntm_stops,
+        # stops_per_capita,
+        # density_per_sqmi,
+        # isolation,
         rate_65_plus
     ) |>
     pivot_longer(
@@ -257,13 +257,13 @@ The column `stops_per_capita` has high outliers (e.g., 12k stops per capita obse
 
 ```{r}
 ggplot(df_nonmiss, aes(x = rurality, y = isolation)) +
-  geom_boxplot() +
-  labs(
-    title = "Isolation by Rurality",
-    x = "Rurality",
-    y = "Isolation"
-  ) +
-  theme_minimal()
+    geom_boxplot() +
+    labs(
+        title = "Isolation by Rurality",
+        x = "Rurality",
+        y = "Isolation"
+    ) +
+    theme_minimal()
 ```
 
 ```{r}
@@ -298,9 +298,9 @@ ggplot(
             variable = recode(
                 variable,
                 count_ntm_stops = "Number of Stops",
-                stops_per_capita = "Stops Per Capita",
-                density_per_sqmi = "Population Density per Square Mile",
-                isolation = "Isolation"
+                stops_per_capita = "Stops Per 1k Capita",
+                density_per_sqmi = "Population Density (per Square Mile)",
+                isolation = "Feelings of Social Isolation"
             )
         ),
     aes(x = value, y = after_stat(count) / sum(after_stat(count)) * 100)
@@ -621,7 +621,7 @@ Notably, missingness in rurality and age-related variables limits our ability to
 :   Secondary RUCA codes, 2010. Source: 2010 USDA-ERS.
 
     | **Code** | **Classification description** |
-    |-----------------------------------|------------------------------------------------|
+    |------------------------------|-----------------------------------------|
     | 1 Metropolitan area core: primary flow within an urbanized area (UA) |  |
     | 1.0 | No additional code |
     | 1.1 | Secondary flow 30% to 50% to a larger UA |
