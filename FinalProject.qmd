@@ -256,14 +256,15 @@ df_nonmiss |>
 The column `stops_per_capita` has high outliers (e.g., 12k stops per capita observation when mean value is 2). We plot the data with outliers (defined as `Q3 + 1.5 * IQR`) removed.\*\*
 
 ```{r}
+#| label: boxplot-isolation-by-rurality
 ggplot(df_nonmiss, aes(x = rurality, y = isolation)) +
     geom_boxplot() +
+    theme_classic() +
     labs(
-        title = "Isolation by Rurality",
-        x = "Rurality",
-        y = "Isolation"
+        x = "",
+        y = "Feelings of Social Isolation"
     ) +
-    theme_minimal()
+    scale_y_continuous(labels = scales::percent_format(scale = 1))
 ```
 
 ```{r}
