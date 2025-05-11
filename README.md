@@ -14,6 +14,8 @@ This repository contains:
 
 -   FinalProject.qmd: Quarto markdown file with all data processing and analysis code
 
+-   646 final project presentation.pdf: Slide deck presentation of results
+
 ## References
 
 [\[1\]](#_ftnref1) Wang F, Gao Y, Han Z, et al. A systematic review and meta-analysis of 90 cohort studies of social isolation, loneliness and mortality. Nat Hum Behav. 2023;7(8):1307-1319. doi: <https://doi.org/10.1038/s41562-023-01617-6>
