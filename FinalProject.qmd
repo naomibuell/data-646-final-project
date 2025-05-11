@@ -19,7 +19,6 @@ library(janitor)
 library(httr)
 library(jsonlite)
 library(skimr)
-library(RSocrata)
 library(CDCPLACES)
 library(readr)
 library(ggplot2)
@@ -220,10 +219,11 @@ Viewing the distribution of our modeling variables.
 #| warning: false
 df_hist <- df_nonmiss |>
     select(
-        count_ntm_stops,
-        stops_per_capita,
-        density_per_sqmi,
-        isolation
+        #count_ntm_stops,
+        #stops_per_capita,
+        #density_per_sqmi,
+        #isolation,
+        rate_65_plus
     ) |>
     pivot_longer(
         cols = everything(),
@@ -254,6 +254,17 @@ df_nonmiss |>
 ```
 
 The column `stops_per_capita` has high outliers (e.g., 12k stops per capita observation when mean value is 2). We plot the data with outliers (defined as `Q3 + 1.5 * IQR`) removed.\*\*
+
+```{r}
+ggplot(df_nonmiss, aes(x = rurality, y = isolation)) +
+  geom_boxplot() +
+  labs(
+    title = "Isolation by Rurality",
+    x = "Rurality",
+    y = "Isolation"
+  ) +
+  theme_minimal()
+```
 
 ```{r}
 #| label: remove-outliers
@@ -554,8 +565,6 @@ For the urban model:
 -   `rate_65_plus`: For each percentage point increase in population aged 65 and older, the probability who report feeling socially isolated **`r ifelse(compiled_unscaled_coefficients$unscaled_Urban[compiled_unscaled_coefficients$term == "rate_65_plus"] < 0, "decreases", "increases")` by `r abs(round(compiled_unscaled_coefficients$unscaled_Urban[compiled_unscaled_coefficients$term == "rate_65_plus"]* 100, 2))`%** (p = `r round(compiled_coefficients$Urban_p[compiled_coefficients$term == "rate_65_plus"], 3)`).
 
 -   `density_per_sqmi`: For each additional person per square mile, the probability who report feeling socially isolated **`r ifelse(compiled_unscaled_coefficients$unscaled_Urban[compiled_unscaled_coefficients$term == "density_per_sqmi"] < 0, "decreases", "increases")` by `r abs(round(compiled_unscaled_coefficients$unscaled_Urban[compiled_unscaled_coefficients$term == "density_per_sqmi"]* 100, 2))`%** (p = `r round(compiled_coefficients$Urban_p[compiled_coefficients$term == "density_per_sqmi"], 3)`).
-
-ADD FIGURE of results
 
 ## Conclusion
 
