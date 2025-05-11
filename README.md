@@ -10,7 +10,7 @@ Social isolation is a critical public health issue that has been linked to highe
 
 This repository contains:
 
--   FinalReport.pdf: Complete analysis and findings
+-   DATA_646_Final_Project report.pdf: Complete analysis and findings
 
 -   FinalProject.qmd: Quarto markdown file with all data processing and analysis code
 
